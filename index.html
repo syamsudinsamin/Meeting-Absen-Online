@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sistem Rapat & Absensi Online</title>
+  <!-- Memuat library html2canvas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    :root {
+      --primary: #0284c7;
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #000000;
+      --border-color: #cbd5e1;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg-color);
+      margin: 0;
+      padding: 20px 0;
+      color: var(--text-main);
+      box-sizing: border-box;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 750px;
+      margin: 0 auto;
+      padding: 0 16px 30px 16px;
+      box-sizing: border-box;
+    }
+
+    .app-header {
+      background: #0284c7;
+      color: white;
+      padding: 18px 16px;
+      text-align: center;
+      font-size: 20px;
+      font-weight: 800;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15);
+      border-radius: 16px;
+      max-width: 480px;
+      margin: 0 auto 20px auto;
+    }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-top: 10px;
+    }
+
+    .menu-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 22px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+      border: 1.5px solid transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .menu-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .menu-card.card-1 { border-color: #6ee7b7; background: linear-gradient(to bottom, #f0fdf4 0%, #ffffff 80%); }
+    .menu-card.card-2 { border-color: #38bdf8; background: linear-gradient(to bottom, #e0f2fe 0%, #ffffff 80%); }
+    .menu-card.card-3 { border-color: #93c5fd; background: linear-gradient(to bottom, #eff6ff 0%, #ffffff 80%); }
+    .menu-card.card-4 { border-color: #fde68a; background: linear-gradient(to bottom, #fffbeb 0%, #ffffff 80%); }
+    .menu-card.card-5 { border-color: #fca5a5; background: linear-gradient(to bottom, #fef2f2 0%, #ffffff 80%); }
+
+    .menu-icon-img { width: 50px; height: 50px; object-fit: contain; margin-bottom: 10px; }
+    .menu-title { font-size: 15px; font-weight: 700; color: #000; margin-bottom: 4px; }
+    .menu-subtitle { font-size: 11px; color: #333; line-height: 1.3; }
+
+    .content-card {
+      background: var(--card-bg);
+      padding: 24px 20px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+      box-sizing: border-box;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    h3 {
+      color: #000; font-size: 18px; font-weight: 700;
+      margin-top: 0; margin-bottom: 16px;
+      border-bottom: 2px solid #f1f5f9; padding-bottom: 8px;
+    }
+
+    label { display: block; margin-top: 14px; font-weight: 600; font-size: 13px; color: #000; }
+
+    input, select, textarea {
+      width: 100%; padding: 12px 14px; margin-top: 6px;
+      border: 1.5px solid var(--border-color); border-radius: 10px;
+      box-sizing: border-box; font-size: 14px; background: #fff; color: #000;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none; border-color: #0284c7; box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.1);
+    }
+
+    input[readonly], textarea[readonly] { background-color: #f1f5f9; color: #333; }
+
+    .btn {
+      width: 100%; background: #0284c7; color: #fff; border: none;
+      padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 700;
+      margin-top: 16px; cursor: pointer; text-align: center;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
+    }
+
+    .btn:hover { background: #0369a1; }
+    .btn:disabled { background: #cbd5e1; cursor: not-allowed; box-shadow: none; }
+    .btn-secondary { background: #64748b; }
+    .btn-secondary:hover { background: #475569; }
+
+    .btn-gps {
+      background: #f0f9ff; color: #0369a1; border: 1.5px dashed #38bdf8;
+      font-size: 13px; padding: 10px; margin-top: 6px; font-weight: 600;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+
+    .btn-print { background: #06b6d4; }
+    .btn-download { background: #10b981; }
+
+    /* Time Picker */
+    .time-picker-container { display: flex; gap: 10px; margin-top: 6px; }
+    .time-box {
+      flex: 1; background: #f8fafc; border: 1.5px solid var(--border-color);
+      border-radius: 10px; padding: 12px; text-align: center; font-size: 16px; font-weight: bold; cursor: pointer; color: #000;
+    }
+    .modal-time-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); z-index: 20000;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .modal-time-overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-time-box { background: #fff; width: 90%; max-width: 320px; padding: 20px; border-radius: 16px; text-align: center; }
+    .time-picker-grid { display: flex; gap: 10px; height: 160px; overflow: hidden; margin: 15px 0; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; }
+    .time-column { flex: 1; overflow-y: auto; scroll-snap-type: y mandatory; }
+    .time-item { padding: 10px; font-size: 16px; font-weight: 600; cursor: pointer; scroll-snap-align: center; color: #334155; }
+    .time-item:hover, .time-item.selected { background: #0284c7; color: #fff; border-radius: 6px; }
+
+    .box-kamera { border: 2px dashed var(--border-color); border-radius: 12px; padding: 16px; text-align: center; margin-top: 8px; background: #fafafa; }
+    .video-container { position: relative; width: 100%; background: #000; border-radius: 8px; overflow: hidden; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; min-height: 220px; }
+    video { width: 100%; height: auto; display: block; }
+    #previewFoto { width: 100%; max-height: 220px; border-radius: 8px; object-fit: contain; margin-bottom: 12px; background: #000; }
+    
+    .hidden { display: none !important; }
+    .info-box { background: #f0f9ff; border: 1px solid #bae6fd; padding: 14px; border-radius: 12px; font-size: 13px; margin-top: 12px; color: #000; line-height: 1.6; }
+
+    #modalOverlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(5px);
+      z-index: 10000; display: flex; justify-content: center; align-items: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
+    }
+    #modalOverlay.active { opacity: 1; pointer-events: auto; }
+    .modal-box { background: #fff; width: 85%; max-width: 300px; padding: 22px 18px; border-radius: 18px; text-align: center; }
+    .modal-icon { width: 45px; height: 45px; margin: 0 auto 10px auto; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; }
+    .modal-icon.success { background: #dcfce7; color: #15803d; }
+    .modal-icon.error { background: #fee2e2; color: #b91c1c; }
+    .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; color: #000; }
+    .modal-message { font-size: 13px; color: #333; margin-bottom: 16px; }
+    .modal-btn { background: #0284c7; color: #fff; border: none; width: 100%; padding: 10px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+
+    @media print {
+      body * { visibility: hidden; }
+      #cardLaporan, #cardLaporan *, #cardUndangan, #cardUndangan * { visibility: visible; }
+      #cardLaporan, #cardUndangan { position: absolute; left: 0; top: 0; width: 100%; border: none !important; }
+      #cardLaporan button, #cardUndangan button, .undangan-actions, .laporan-actions { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="app-header">SYSTEM MEETING & ABSEN ONLINE RW 04 RATU JAYA</div>
+
+    <!-- HALAMAN LOGIN -->
+    <div id="halamanLogin" class="content-card">
+      <h3 style="text-align: center; border-bottom: none; margin-bottom: 4px;">LOGIN SYSTEM</h3>
+      <p style="text-align: center; font-size: 11px; color: #333; margin-top: 0; margin-bottom: 16px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">Deploy by : Syamsudin Samin</p>
+      <form id="formLogin">
+        <label>Username</label>
+        <input type="text" id="loginUser" required>
+        <label>Password</label>
+        <input type="password" id="loginPass" required>
+        <button type="submit" class="btn" style="margin-top: 20px;">🔓 LOGIN</button>
+      </form>
+    </div>
+
+    <!-- HALAMAN MENU UTAMA -->
+    <div id="halamanMenuUtama" class="hidden">
+      <div style="text-align: right; margin-bottom: 8px; font-size: 12px; color: #333;">
+        Login sebagai: <b id="lblRoleAktif" style="color: var(--primary); text-transform: uppercase;">-</b>
+      </div>
+      <div class="menu-grid">
+        <div class="menu-card card-1" onclick="bukaFormAcara()">
+          <img src="https://cdn-icons-png.flaticon.com/512/1184/1184438.png" alt="Rapat" class="menu-icon-img">
+          <div class="menu-title">PLAN MEETING</div>
+          <div class="menu-subtitle">Input & Simpan Agenda Meeting</div>
+        </div>
+        <div class="menu-card card-2" onclick="bukaFormCetakUndangan()">
+          <img src="https://cdn-icons-png.flaticon.com/512/1041/1041916.png" alt="Undangan" class="menu-icon-img">
+          <div class="menu-title">MEETING UNDANGAN</div>
+          <div class="menu-subtitle">Download Picture & Print PDF</div>
+        </div>
+        <div class="menu-card card-3" onclick="bukaFormAbsen()">
+          <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Absen" class="menu-icon-img">
+          <div class="menu-title">ABSEN ONLINE</div>
+          <div class="menu-subtitle">Isi Absensi & Selfie Kehadiran</div>
+        </div>
+        <div class="menu-card card-4" onclick="bukaFormNotulen()">
+          <img src="https://cdn-icons-png.flaticon.com/512/2921/2921222.png" alt="Notulen" class="menu-icon-img">
+          <div class="menu-title">NOTULEN MEETING</div>
+          <div class="menu-subtitle">Hasil Notulen Meeting & Print</div>
+        </div>
+        <div class="menu-card card-5" onclick="prosesLogout()" style="grid-column: span 2;">
+          <img src="https://cdn-icons-png.flaticon.com/512/1828/1828479.png" alt="Logout" class="menu-icon-img" style="width: 35px; height: 35px; margin-bottom: 6px;">
+          <div class="menu-title">LOG OUT</div>
+          <div class="menu-subtitle">Created by : Syamsudin Samin</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HALAMAN 1: BUAT JADWAL RAPAT -->
+    <div id="halamanAcaraRapat" class="hidden">
+      <div class="content-card">
+        <h3>JADWAL MEETING</h3>
+        <form id="formAcara">
+          <label>Ditujukan Kepada</label>
+          <input type="text" id="acDitujukan" placeholder="Contoh: Seluruh Warga RT 01" required>
+
+          <label>Nama Pengundang</label>
+          <input type="text" id="acPengundang" placeholder="Contoh: Syamsudin Samin" required>
+
+          <label>Code Meeting</label>
+          <input type="text" id="acKode" value="[Otomatis dibuat saat disimpan]" readonly>
+
+          <label>Nama Acara Meeting</label>
+          <input type="text" id="acAcara" placeholder="Contoh: Rapat RW 04" required>
+
+          <label>Pembahasan</label>
+          <input type="text" id="acPembahasan" placeholder="Contoh: TPS / Keamanan" required>
+
+          <label>Nama Tempat / Lokasi</label>
+          <input type="text" id="acLokasiNama" placeholder="Contoh: Posyandu Mawar" required>
+
+          <label>Titik Koordinat GPS Lokasi</label>
+          <input type="text" id="acLokasiGps" placeholder="Klik tombol di bawah" readonly required>
+          <button type="button" class="btn btn-gps" onclick="ambilGpsAdmin()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            KOORDINAT GPS LOKASI MEETING
+          </button>
+
+          <label>Tanggal Meeting</label>
+          <input type="date" id="acTanggal" onchange="hitungHariOtomatis(this.value)" required>
+
+          <label>Hari</label>
+          <input type="text" id="acHari" placeholder="Otomatis" readonly required>
+
+          <label>Waktu Meeting</label>
+          <div class="time-picker-container" onclick="bukaModalJam()">
+            <div id="displayJam" class="time-box">19 : 30</div>
+            <div class="time-box" style="background: #e2e8f0; flex: 0.6; cursor: default;">WIB s.d Selesai</div>
+          </div>
+          <input type="hidden" id="acWaktu" value="19:30 WIB s.d Selesai" required>
+
+          <button type="submit" class="btn" id="btnSimpanAcara">💾 SAVE MEETING</button>
+        </form>
+        <button type="button" class="btn btn-secondary" onclick="kembaliKeMenu()" style="margin-top: 14px;">⬅️ BACK TO MENU</button>
+      </div>
+    </div>
+
+    <!-- HALAMAN 2: CETAK SURAT UNDANGAN -->
+    <div id="halamanCetakUndangan" class="hidden">
+      <div class="content-card">
+        <h3>CETAK SURAT UNDANGAN</h3>
+        <div id="pilihRapatUndanganBox">
+          <label>Pilih Code Meeting</label>
+          <select id="pilihRapatCetak" onchange="muatDataUndangan()">
+            <option value="">-- Pilih Code Meeting --</option>
+          </select>
+        </div>
+
+        <div id="cardUndangan" class="hidden" style="margin-top: 14px; background: #fff; border: 2px solid #0284c7; padding: 18px; border-radius: 12px; color: #000;">
+          <h3 style="text-align: center; color: #000; margin-bottom: 2px; text-transform: uppercase; border: none;">SURAT UNDANGAN RESMI</h3>
+          <hr style="border: 0; border-top: 1px solid var(--border-color); margin-bottom: 12px;">
+          
+          <p style="font-size: 13px; margin-bottom: 8px; color: #000;"><b>Kepada Yth.</b><br><span id="undDitujukanText" style="font-weight: bold; color: #000;">-</span></p>
+          <table style="width: 100%; font-size: 12px; line-height: 1.5; background: #f8fafc; padding: 8px; border-radius: 6px; color: #000;">
+            <tr><td style="font-weight: bold; width: 35%; color: #000;">Code Meeting</td><td id="undCode" style="color: #000;">: -</td></tr>
+            <tr><td style="font-weight: bold; color: #000;">Acara</td><td id="undAcara" style="color: #000;">: -</td></tr>
+            <tr><td style="font-weight: bold; color: #000;">Pembahasan</td><td id="undPembahasan" style="color: #000;">: -</td></tr>
+            <tr><td style="font-weight: bold; color: #000;">Hari, Tanggal</td><td id="undWaktu" style="color: #000;">: -</td></tr>
+            <tr><td style="font-weight: bold; color: #000;">Waktu</td><td id="undJam" style="color: #000;">: -</td></tr>
+            <tr><td style="font-weight: bold; color: #000;">Lokasi</td><td id="undLokasi" style="color: #000;">: -</td></tr>
+          </table>
+
+          <div style="margin-top: 20px; text-align: right; font-size: 12px; color: #000;">
+            <span id="undTempatTanggal">-</span>
+          </div>
+          <div style="margin-top: 6px; font-size: 12px; color: #000; font-weight: bold;">Hormat Kami,</div>
+
+          <div style="margin-top: 8px; display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <div style="border: 2px solid #0284c7; width: 85px; height: 85px; display: flex; align-items: center; justify-content: center; background: #fff; border-radius: 4px;">
+                <img id="imgTtdBarcode" alt="Barcode" style="width: 75px; height: 75px; object-fit: contain;">
+              </div>
+              <div style="font-size: 11px; font-weight: bold; color: #000; margin-top: 4px;" id="undPengundangText">-</div>
+            </div>
+          </div>
+
+          <div class="undangan-actions" style="margin-top: 16px;">
+            <button type="button" class="btn btn-download" onclick="unduhGambarUndangan()" style="margin-bottom: 6px;">📥 DOWNLOAD PICTURE (PNG)</button>
+            <button type="button" class="btn btn-print" onclick="window.print()" style="margin-bottom: 6px;">🖨️ PRINT / SAVE PDF</button>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-secondary" onclick="kembaliKeMenu()" style="margin-top: 14px;">⬅️ BACK TO MENU</button>
+      </div>
+    </div>
+
+    <!-- HALAMAN 3: DAFTAR HADIR / ABSEN -->
+    <div id="halamanDaftarHadir" class="hidden">
+      <div class="content-card">
+        <div id="panelPilihRapat">
+          <h3>PILIH JADWAL MEETING</h3>
+          <label>Pilih Code Meeting</label>
+          <select id="pilihRapat" onchange="muatDetailRapat()">
+            <option value="">-- Memuat Code Meeting... --</option>
+          </select>
+          <div id="detailRapatBox" class="info-box hidden">
+            <b>Code:</b> <span id="lblCodeRapat" style="color: #000; font-weight: bold;"></span><br>
+            <b>Acara:</b> <span id="lblNamaAcara"></span><br>
+            <b>Pembahasan:</b> <span id="lblPembahasan"></span><br>
+            <b>Lokasi:</b> <span id="lblLokasi"></span><br>
+            <b>Hari / Tanggal:</b> <span id="lblHariTgl"></span><br>
+            <b>Waktu:</b> <span id="lblWaktu"></span>
+          </div>
+          <button type="button" class="btn" onclick="lanjutKeFormAbsen()" style="margin-top: 16px;">TO ABSEN ONLINE ➡️</button>
+          <button type="button" class="btn btn-secondary" onclick="kembaliKeMenu()" style="margin-top: 8px;">⬅️ BACK TO MENU</button>
+        </div>
+
+        <div id="panelIsiAbsen" class="hidden">
+          <div class="info-box">
+            <b>Code Meeting:</b> <span id="lblKodeAktif" style="color: #000; font-weight: bold;"></span><br>
+            <b>Status GPS:</b> <span id="lblGpsPeserta" style="color: #000; font-weight: 600;">Mendeteksi...</span>
+          </div>
+          <form id="formAbsen">
+            <label>Nama Lengkap</label>
+            <input type="text" id="nama" placeholder="Masukkan nama Anda" required>
+            <label>Jabatan</label>
+            <input type="text" id="jabatan" placeholder="Contoh: Ketua / Anggota / Warga" required>
+            <label>Foto Selfie Kehadiran (Stempel GPS Map Camera)</label>
+            <div class="box-kamera">
+              <div id="videoContainer" class="video-container hidden">
+                <video id="videoElement" autoplay playsinline muted></video>
+              </div>
+              <canvas id="hiddenCanvas" class="hidden"></canvas>
+              <img id="previewFoto" class="hidden" alt="Preview Foto">
+              
+              <button type="button" class="btn" id="btnNyalakanKamera" onclick="startCamera()">📸 1. NYALAKAN KAMERA</button>
+              <button type="button" class="btn btn-download hidden" id="btnAmbilFoto" onclick="captureSnapshot()">📷 2. AMBIL FOTO</button>
+              <button type="button" class="btn btn-secondary hidden" id="btnUlangFoto" onclick="ulangFotoKamera()" style="margin-top: 8px;">🔄 Ambil Ulang Foto</button>
+            </div>
+            <button type="submit" class="btn" id="btnKirim" disabled>SEND ABSENSI</button>
+          </form>
+          <button type="button" class="btn btn-secondary" onclick="resetPilihRapat()" style="background: #ef4444; margin-top: 10px;">🔄 PILIH MEETING</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HALAMAN 4: NOTULEN & LAPORAN -->
+    <div id="halamanNotulen" class="hidden">
+      <div class="content-card">
+        <h3>NOTULEN MEETING</h3>
+        <div id="formNotulenBox">
+          <form id="formNotulen">
+            <label>Pilih Code Meeting</label>
+            <select id="pilihRapatNotulen" onchange="muatIsiNotulen()" required>
+              <option value="">-- Pilih Code Meeting --</option>
+            </select>
+            <label>Catatan / Hasil Notulen Rapat</label>
+            <textarea id="notIsi" rows="4" placeholder="Tuliskan hasil keputusan rapat..."></textarea>
+            <button type="submit" class="btn" id="btnSimpanNotulen" style="background: #f59e0b; margin-top: 14px;">💾 SAVE NOTULEN</button>
+          </form>
+          <button type="button" class="btn btn-print" onclick="bukaPreviewCetak()">🖨️ OPEN NOTULEN</button>
+        </div>
+
+        <div id="cardLaporan" class="hidden" style="margin-top: 10px; background: #fff; border: 2px solid #0284c7; padding: 16px; border-radius: 10px; color: #000;">
+          <h3 style="text-align: center; color: #000; margin-bottom: 4px; border: none;">LAPORAN RAPAT</h3>
+          <hr style="border: 0; border-top: 1px solid var(--border-color); margin-bottom: 12px;">
+          <table style="width: 100%; font-size: 12px; line-height: 1.5; color: #000;">
+            <tr><td style="font-weight: bold; width: 35%; color: #000;">Code Meeting</td><td id="repCode" style="color: #000;">: -</td></tr>
+            <tr><td style="font-weight: bold; color: #000;">Acara</td><td id="repAcara" style="color: #000;">: -</td></tr>
+            <tr><td style="font-weight: bold; color: #000;">Pembahasan</td><td id="repPembahasan" style="color: #000;">: -</td></tr>
+            <tr><td style="font-weight: bold; color: #000;">Hari, Tanggal</td><td id="repWaktu" style="color: #000;">: -</td></tr>
+            <tr><td style="font-weight: bold; color: #000;">Lokasi</td><td id="repLokasi" style="color: #000;">: -</td></tr>
+            <tr><td style="font-weight: bold; color: #000;">Jumlah Peserta</td><td id="repJml" style="color: #000; font-weight: bold;">: - Orang</td></tr>
+          </table>
+          <h4 style="margin-top: 12px; margin-bottom: 4px; font-size: 13px; color: #000;">Hasil Notulen:</h4>
+          <p id="repIsiNotulen" style="background: #f8fafc; padding: 8px; border-radius: 6px; font-size: 12px; border-left: 3px solid #0284c7; white-space: pre-wrap; color: #000;"></p>
+          <h4 style="margin-top: 12px; margin-bottom: 6px; font-size: 13px; color: #000;">Daftar Peserta Hadir:</h4>
+          <table border="1" style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: left; border-color: var(--border-color); color: #000;" id="tabelPesertaLaporan">
+            <thead>
+              <tr style="background: #f1f5f9; color: #000;">
+                <th style="padding: 5px; width: 10%;">No</th>
+                <th style="padding: 5px; width: 50%;">Nama</th>
+                <th style="padding: 5px; width: 40%;">Jabatan</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+
+          <div class="laporan-actions" style="margin-top: 16px;">
+            <button type="button" class="btn btn-download" onclick="unduhGambarLaporan()" style="margin-bottom: 6px;">📥 DOWNLOAD PICTURE (PNG)</button>
+            <button type="button" class="btn btn-print" onclick="window.print()" style="margin-bottom: 6px;">🖨️ PRINT / SAVE PDF</button>
+            <button type="button" class="btn btn-secondary" onclick="tutupPreviewCetak()" style="margin-top: 6px;">⬅️ BACK</button>
+          </div>
+        </div>
+        <button type="button" class="btn btn-secondary" onclick="kembaliKeMenu()" style="margin-top: 14px;">⬅️ BACK TO MENU</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL TIME PICKER -->
+  <div id="modalTimePicker" class="modal-time-overlay">
+    <div class="modal-time-box">
+      <h4 style="margin: 0 0 10px 0; font-size: 16px; color: #000;">Pilih Jam Rapat</h4>
+      <div class="time-picker-grid">
+        <div class="time-column" id="colJam"></div>
+        <div class="time-column" id="colMenit"></div>
+      </div>
+      <button type="button" class="btn" onclick="tutupModalJam()" style="margin-top: 5px; padding: 10px;">Pilih Waktu</button>
+    </div>
+  </div>
+
+  <div id="modalOverlay">
+    <div class="modal-box">
+      <div id="modalIconBox" class="modal-icon success">✓</div>
+      <div id="modalTitle" class="modal-title">Berhasil</div>
+      <div id="modalMessage" class="modal-message">Pesan...</div>
+      <button type="button" class="modal-btn" onclick="tutupModal()">OK</button>
+    </div>
+  </div>
+
+  <script>
+    // URL WEB APP GOOGLE APPS SCRIPT ANDA
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxRE2erMH6CbhOp0tJiSIqK6LRk6QUX8inV8avQfdNmeASJIv6HLTMya9e9vsEKQTnu/exec";
+
+    var roleLogin = '';
+    var daftarRapatData = [];
+    var rapatTerpilih = null;
+    var fotoBase64 = null;
+    var gpsPesertaLat = '0';
+    var gpsPesertaLng = '0';
+    var alamatGpsPeserta = 'Mendeteksi alamat...';
+    var ttdBase64Global = '';
+    var mediaStreamGlobal = null;
+
+    function callServerGet(action, paramQuery, callback) {
+      var url = SCRIPT_URL + '?action=' + action + (paramQuery ? '&' + paramQuery : '');
+      fetch(url)
+        .then(res => res.json())
+        .then(data => { if (callback) callback(data); })
+        .catch(err => console.error("Error GET:", err));
+    }
+
+    function callServerPost(action, payload, callback) {
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: action, payload: payload })
+      })
+      .then(res => res.json())
+      .then(data => { if (callback) callback(data); })
+      .catch(err => {
+        console.error("Error POST:", err);
+        if (callback) callback({ status: 'gagal', pesan: err.message });
+      });
+    }
+
+    function muatTtdServer(callback) {
+      if (ttdBase64Global) {
+        if (callback) callback(ttdBase64Global);
+        return;
+      }
+      callServerGet('getTtd', '', function(res) {
+        ttdBase64Global = res.ttd || '';
+        if (callback) callback(ttdBase64Global);
+      });
+    }
+
+    window.onload = function() {
+      muatTtdServer();
+      inisialisasiTimePicker();
+    };
+
+    function inisialisasiTimePicker() {
+      var colJam = document.getElementById('colJam');
+      var colMenit = document.getElementById('colMenit');
+      for (var i = 0; i < 24; i++) {
+        var jam = i < 10 ? '0' + i : '' + i;
+        colJam.innerHTML += '<div class="time-item" onclick="pilihJam(\'' + jam + '\')">' + jam + '</div>';
+      }
+      for (var i = 0; i < 60; i += 5) {
+        var mnt = i < 10 ? '0' + i : '' + i;
+        colMenit.innerHTML += '<div class="time-item" onclick="pilihMenit(\'' + mnt + '\')">' + mnt + '</div>';
+      }
+    }
+
+    var selectedJam = '19';
+    var selectedMenit = '30';
+
+    function bukaModalJam() { document.getElementById('modalTimePicker').classList.add('active'); }
+    function pilihJam(j) { selectedJam = j; updateWaktuInput(); }
+    function pilihMenit(m) { selectedMenit = m; updateWaktuInput(); }
+    function updateWaktuInput() {
+      document.getElementById('displayJam').innerText = selectedJam + ' : ' + selectedMenit;
+      document.getElementById('acWaktu').value = selectedJam + ':' + selectedMenit + ' WIB s.d Selesai';
+    }
+    function tutupModalJam() { document.getElementById('modalTimePicker').classList.remove('active'); }
+
+    document.getElementById('formLogin').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var u = document.getElementById('loginUser').value.trim().toLowerCase();
+      var p = document.getElementById('loginPass').value.trim();
+      if (u === 'admin' && p === 'admin170479') { roleLogin = 'admin'; }
+      else if (u === 'warga' && p === 'warga04') { roleLogin = 'user'; }
+      else { showModal('Gagal', 'Username atau Password salah!', 'error'); return; }
+
+      document.getElementById('lblRoleAktif').innerText = roleLogin;
+      document.getElementById('halamanLogin').classList.add('hidden');
+      document.getElementById('halamanMenuUtama').classList.remove('hidden');
+
+      var btnNotulen = document.getElementById('btnSimpanNotulen');
+      var notIsi = document.getElementById('notIsi');
+
+      if (roleLogin === 'user') {
+        btnNotulen.classList.add('hidden'); 
+        notIsi.readOnly = true;
+      } else {
+        btnNotulen.classList.remove('hidden'); 
+        notIsi.readOnly = false;
+      }
+    });
+
+    function prosesLogout() {
+      roleLogin = '';
+      document.getElementById('loginUser').value = '';
+      document.getElementById('loginPass').value = '';
+      document.getElementById('halamanMenuUtama').classList.add('hidden');
+      document.getElementById('halamanLogin').classList.remove('hidden');
+      stopCamera();
+    }
+
+    function bukaFormAcara() {
+      if (roleLogin !== 'admin') { showModal('Akses Ditolak', 'Maaf, Akun Anda tidak memiliki Hak Akses.', 'error'); return; }
+      document.getElementById('halamanMenuUtama').classList.add('hidden');
+      document.getElementById('halamanAcaraRapat').classList.remove('hidden');
+      document.getElementById('formAcara').reset();
+      document.getElementById('acKode').value = '[Otomatis dibuat saat disimpan]';
+      updateWaktuInput();
+    }
+
+    function bukaFormCetakUndangan() {
+      if (roleLogin !== 'admin') { showModal('Akses Ditolak', 'Maaf, Akun Anda tidak memiliki Hak Akses.', 'error'); return; }
+      document.getElementById('halamanMenuUtama').classList.add('hidden');
+      document.getElementById('halamanCetakUndangan').classList.remove('hidden');
+      document.getElementById('cardUndangan').classList.add('hidden');
+      muatTtdServer();
+      loadDropdownCetakUndangan();
+    }
+
+    function bukaFormAbsen() {
+      document.getElementById('halamanMenuUtama').classList.add('hidden');
+      document.getElementById('halamanDaftarHadir').classList.remove('hidden');
+      document.getElementById('panelPilihRapat').classList.remove('hidden');
+      document.getElementById('panelIsiAbsen').classList.add('hidden');
+      loadDaftarRapat();
+    }
+
+    function bukaFormNotulen() {
+      document.getElementById('halamanMenuUtama').classList.add('hidden');
+      document.getElementById('halamanNotulen').classList.remove('hidden');
+      document.getElementById('formNotulenBox').classList.remove('hidden');
+      document.getElementById('cardLaporan').classList.add('hidden');
+      loadDropdownNotulen();
+    }
+
+    function kembaliKeMenu() {
+      stopCamera();
+      document.getElementById('halamanMenuUtama').classList.remove('hidden');
+      document.getElementById('halamanAcaraRapat').classList.add('hidden');
+      document.getElementById('halamanCetakUndangan').classList.add('hidden');
+      document.getElementById('halamanDaftarHadir').classList.add('hidden');
+      document.getElementById('halamanNotulen').classList.add('hidden');
+    }
+
+    function loadDropdownCetakUndangan() {
+      var select = document.getElementById('pilihRapatCetak');
+      if (!select) return;
+      select.innerHTML = '<option value="">-- Memuat Code Meeting... --</option>';
+      callServerGet('getDaftarRapat', '', function(data) {
+        daftarRapatData = data || [];
+        select.innerHTML = '<option value="">-- Pilih Code Meeting --</option>';
+        if (daftarRapatData.length === 0) {
+          select.innerHTML += '<option value="">-- Belum ada data rapat --</option>';
+        } else {
+          daftarRapatData.forEach(function(r, index) {
+            select.innerHTML += '<option value="' + index + '">' + r.code + ' - ' + r.pembahasan + '</option>';
+          });
+        }
+      });
+    }
+
+    function formatTanggalBersih(tglStr) {
+      if (!tglStr) return '-';
+      var cleanStr = String(tglStr).trim();
+      if (cleanStr.includes('GMT') || cleanStr.includes('UTC') || cleanStr.length > 25) {
+        try {
+          var d = new Date(cleanStr);
+          if (!isNaN(d.getTime())) return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+        } catch(e) {}
+        cleanStr = cleanStr.split(' 00:00:00')[0].replace(/GMT.*$/, '').trim();
+      }
+      if (/^\d{4}-\d{2}-\d{2}$/.test(cleanStr)) {
+        var parts = cleanStr.split('-');
+        var dObj = new Date(parts[0], parts[1] - 1, parts[2]);
+        if (!isNaN(dObj.getTime())) return dObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+      }
+      return cleanStr;
+    }
+
+    function muatDataUndangan() {
+      var idx = document.getElementById('pilihRapatCetak').value;
+      var card = document.getElementById('cardUndangan');
+      if (idx === "") { card.classList.add('hidden'); return; }
+      
+      var r = daftarRapatData[idx];
+      document.getElementById('undDitujukanText').innerText = r.ditujukan || '-';
+      document.getElementById('undPengundangText').innerText = r.pengundang || '-';
+      document.getElementById('undCode').innerText = ': ' + r.code;
+      document.getElementById('undAcara').innerText = ': ' + r.acara;
+      document.getElementById('undPembahasan').innerText = ': ' + r.pembahasan;
+      document.getElementById('undWaktu').innerText = ': ' + (r.hari || '-') + ', ' + formatTanggalBersih(r.tanggal);
+      document.getElementById('undJam').innerText = ': ' + r.waktu;
+      document.getElementById('undLokasi').innerText = ': ' + r.lokasiNama;
+      document.getElementById('undTempatTanggal').innerText = 'Depok, ' + new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+      var imgBarcode = document.getElementById('imgTtdBarcode');
+      if (ttdBase64Global) imgBarcode.src = ttdBase64Global;
+      else muatTtdServer(function(b64) { if (b64) imgBarcode.src = b64; });
+      card.classList.remove('hidden');
+    }
+
+    function unduhGambarUndangan() {
+      var card = document.getElementById('cardUndangan');
+      var actionDiv = card.querySelector('.undangan-actions');
+      actionDiv.style.display = 'none';
+      html2canvas(card, { scale: 2, useCORS: true }).then(function(canvas) {
+        actionDiv.style.display = 'block';
+        var link = document.createElement('a');
+        link.download = 'Surat_Undangan_Rapat.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    }
+
+    function unduhGambarLaporan() {
+      var card = document.getElementById('cardLaporan');
+      var actionDiv = card.querySelector('.laporan-actions');
+      actionDiv.style.display = 'none';
+      html2canvas(card, { scale: 2, useCORS: true }).then(function(canvas) {
+        actionDiv.style.display = 'block';
+        var link = document.createElement('a');
+        link.download = 'Laporan_Notulen_Rapat.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    }
+
+    function hitungHariOtomatis(valTanggal) {
+      if (!valTanggal) return;
+      var hariArr = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+      var parts = valTanggal.split('-');
+      var d = new Date(parts[0], parts[1] - 1, parts[2]);
+      document.getElementById('acHari').value = hariArr[d.getDay()];
+      var tglFormatted = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+      document.getElementById('acTanggal').setAttribute('data-formatted', tglFormatted);
+    }
+
+    function ambilGpsAdmin() {
+      if (!navigator.geolocation) { showModal('Gagal', 'GPS tidak didukung.', 'error'); return; }
+      navigator.geolocation.getCurrentPosition(function(pos) {
+        document.getElementById('acLokasiGps').value = pos.coords.latitude.toFixed(6) + ', ' + pos.coords.longitude.toFixed(6);
+        showModal('Berhasil', 'Titik GPS dikunci!', 'success');
+      }, function(err) { showModal('Gagal', err.message, 'error'); }, { enableHighAccuracy: true });
+    }
+
+    document.getElementById('formAcara').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var btn = document.getElementById('btnSimpanAcara');
+      btn.disabled = true; btn.innerText = 'Menyimpan...';
+
+      var rawDate = document.getElementById('acTanggal').value;
+      var tanggalFinal = document.getElementById('acTanggal').getAttribute('data-formatted') || rawDate;
+      if (rawDate && !document.getElementById('acTanggal').getAttribute('data-formatted')) {
+        var p = rawDate.split('-');
+        var dObj = new Date(p[0], p[1] - 1, p[2]);
+        tanggalFinal = dObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+      }
+
+      var dataAcara = {
+        ditujukan: document.getElementById('acDitujukan').value.trim(),
+        pengundang: document.getElementById('acPengundang').value.trim(),
+        acara: document.getElementById('acAcara').value.trim(),
+        pembahasan: document.getElementById('acPembahasan').value.trim(),
+        lokasiNama: document.getElementById('acLokasiNama').value.trim(),
+        lokasiGps: document.getElementById('acLokasiGps').value.trim(),
+        hari: document.getElementById('acHari').value.trim(),
+        tanggal: tanggalFinal,
+        waktu: document.getElementById('acWaktu').value.trim()
+      };
+
+      callServerPost('simpanAcaraRapat', dataAcara, function(res) {
+        btn.disabled = false; btn.innerText = '💾 SAVE MEETING';
+        if (res.status === 'sukses') {
+          showModal('Berhasil', res.pesan, 'success');
+          document.getElementById('acKode').value = res.kode + ' (Tersimpan!)';
+        } else { showModal('Gagal', res.pesan, 'error'); }
+      });
+    });
+
+    document.getElementById('formNotulen').addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (roleLogin !== 'admin') return;
+      var idx = document.getElementById('pilihRapatNotulen').value;
+      if (idx === "") { showModal('Perhatian', 'Pilih Code Meeting!', 'error'); return; }
+      var r = daftarRapatData[idx];
+      var btn = document.getElementById('btnSimpanNotulen');
+      btn.disabled = true; btn.innerText = 'Menyimpan...';
+      
+      var dataNotulen = {
+        code: r.code, acara: r.acara, hari: r.hari, tanggal: r.tanggal,
+        waktu: r.waktu, lokasi: r.lokasiNama, jumlahPeserta: r.jumlahPeserta,
+        isiNotulen: document.getElementById('notIsi').value.trim()
+      };
+
+      callServerPost('simpanNotulen', dataNotulen, function(res) {
+        btn.disabled = false; btn.innerText = '💾 SAVE NOTULEN';
+        if (res.status === 'sukses') showModal('Berhasil', res.pesan, 'success');
+        else showModal('Gagal', res.pesan, 'error');
+      });
+    });
+
+    document.getElementById('formAbsen').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var btn = document.getElementById('btnKirim');
+      btn.disabled = true; btn.innerText = 'Mengirim & Upload Foto...';
+      
+      var dataPayload = {
+        acara: rapatTerpilih.code + ' - ' + rapatTerpilih.acara,
+        hari: rapatTerpilih.hari, tanggal: rapatTerpilih.tanggal, waktu: rapatTerpilih.waktu,
+        nama: document.getElementById('nama').value, jabatan: document.getElementById('jabatan').value, foto: fotoBase64
+      };
+
+      callServerPost('simpanAbsen', dataPayload, function(res) {
+        btn.innerText = 'SEND ABSENSI';
+        if (res.status === 'sukses') {
+          showModal('Berhasil', res.pesan, 'success');
+          document.getElementById('nama').value = ''; document.getElementById('jabatan').value = '';
+          stopCamera();
+          ulangFotoKamera();
+        } else { showModal('Gagal', res.pesan, 'error'); }
+        validasiTombolKirim();
+      });
+    });
+
+    function loadDaftarRapat() {
+      var select = document.getElementById('pilihRapat');
+      select.innerHTML = '<option value="">-- Memuat... --</option>';
+      callServerGet('getDaftarRapat', '', function(data) {
+        daftarRapatData = data || [];
+        select.innerHTML = '<option value="">-- Pilih Code Meeting --</option>';
+        if (daftarRapatData.length === 0) select.innerHTML += '<option value="">-- Belum ada data rapat --</option>';
+        else {
+          daftarRapatData.forEach(function(r, index) {
+            select.innerHTML += '<option value="' + index + '">' + r.code + ' - ' + r.pembahasan + '</option>';
+          });
+        }
+      });
+    }
+
+    function loadDropdownNotulen() {
+      var select = document.getElementById('pilihRapatNotulen');
+      select.innerHTML = '<option value="">-- Memuat... --</option>';
+      callServerGet('getDaftarRapat', '', function(data) {
+        daftarRapatData = data || [];
+        select.innerHTML = '<option value="">-- Pilih Code Meeting --</option>';
+        if (daftarRapatData.length === 0) select.innerHTML += '<option value="">-- Belum ada data rapat --</option>';
+        else {
+          daftarRapatData.forEach(function(r, index) {
+            select.innerHTML += '<option value="' + index + '">' + r.code + ' - ' + r.pembahasan + '</option>';
+          });
+        }
+      });
+    }
+
+    function muatDetailRapat() {
+      var idx = document.getElementById('pilihRapat').value;
+      var box = document.getElementById('detailRapatBox');
+      if (idx === "") { box.classList.add('hidden'); rapatTerpilih = null; return; }
+      rapatTerpilih = daftarRapatData[idx];
+      document.getElementById('lblCodeRapat').innerText = rapatTerpilih.code;
+      document.getElementById('lblNamaAcara').innerText = rapatTerpilih.acara;
+      document.getElementById('lblPembahasan').innerText = rapatTerpilih.pembahasan;
+      document.getElementById('lblLokasi').innerText = rapatTerpilih.lokasiNama;
+      document.getElementById('lblHariTgl').innerText = rapatTerpilih.hari + ', ' + formatTanggalBersih(rapatTerpilih.tanggal);
+      document.getElementById('lblWaktu').innerText = rapatTerpilih.waktu;
+      box.classList.remove('hidden');
+    }
+
+    function muatIsiNotulen() {
+      var idx = document.getElementById('pilihRapatNotulen').value;
+      if (idx === "") { document.getElementById('notIsi').value = ''; return; }
+      document.getElementById('notIsi').value = daftarRapatData[idx].hasilNotulen || '';
+    }
+
+    function lanjutKeFormAbsen() {
+      if (!rapatTerpilih) { showModal('Perhatian', 'Pilih rapat terlebih dahulu!', 'error'); return; }
+      document.getElementById('lblKodeAktif').innerText = rapatTerpilih.code + ' - ' + rapatTerpilih.acara;
+      document.getElementById('panelPilihRapat').classList.add('hidden');
+      document.getElementById('panelIsiAbsen').classList.remove('hidden');
+      ambilGpsPeserta();
+    }
+
+    function ambilGpsPeserta() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(pos) {
+          gpsPesertaLat = pos.coords.latitude.toFixed(6);
+          gpsPesertaLng = pos.coords.longitude.toFixed(6);
+          var urlGeo = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + gpsPesertaLat + '&lon=' + gpsPesertaLng + '&accept-language=id';
+          fetch(urlGeo)
+            .then(res => res.json())
+            .then(data => {
+              alamatGpsPeserta = data.display_name || ('Lat: ' + gpsPesertaLat + ', Long: ' + gpsPesertaLng);
+              document.getElementById('lblGpsPeserta').innerText = alamatGpsPeserta + ' (Aktif)';
+            })
+            .catch(() => {
+              alamatGpsPeserta = 'Lat: ' + gpsPesertaLat + ', Long: ' + gpsPesertaLng;
+              document.getElementById('lblGpsPeserta').innerText = alamatGpsPeserta + ' (Aktif)';
+            });
+        }, function() { 
+          document.getElementById('lblGpsPeserta').innerText = 'GPS non-aktif'; 
+          alamatGpsPeserta = 'Lokasi tidak terdeteksi';
+        }, { enableHighAccuracy: true });
+      }
+    }
+
+    function startCamera() {
+      var videoContainer = document.getElementById('videoContainer');
+      var videoElement = document.getElementById('videoElement');
+      var btnNyalakan = document.getElementById('btnNyalakanKamera');
+      var btnAmbil = document.getElementById('btnAmbilFoto');
+
+      videoContainer.classList.remove('hidden');
+      navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 }, audio: false })
+        .then(stream => {
+          mediaStreamGlobal = stream;
+          videoElement.srcObject = stream;
+          videoElement.play();
+          btnNyalakan.classList.add('hidden');
+          btnAmbil.classList.remove('hidden');
+        })
+        .catch(err => {
+          showModal('Gagal', 'Tidak dapat mengakses kamera: ' + err.message, 'error');
+          videoContainer.classList.add('hidden');
+        });
+    }
+
+    function stopCamera() {
+      if (mediaStreamGlobal) {
+        mediaStreamGlobal.getTracks().forEach(track => track.stop());
+        mediaStreamGlobal = null;
+      }
+      document.getElementById('videoElement').srcObject = null;
+      document.getElementById('videoContainer').classList.add('hidden');
+    }
+
+    function captureSnapshot() {
+      var videoElement = document.getElementById('videoElement');
+      if (videoElement.videoWidth === 0 || videoElement.videoHeight === 0) {
+        showModal('Perhatian', 'Kamera belum siap.', 'error');
+        return;
+      }
+
+      var canvas = document.getElementById('hiddenCanvas');
+      var ctx = canvas.getContext('2d');
+      var w = videoElement.videoWidth, h = videoElement.videoHeight;
+      if (w > 800) { h = Math.round((h * 800) / w); w = 800; }
+      canvas.width = w; canvas.height = h;
+      ctx.drawImage(videoElement, 0, 0, w, h);
+
+      stopCamera();
+      terapkanStempelDanSimpan(canvas, ctx);
+    }
+
+    function terapkanStempelDanSimpan(canvas, ctx) {
+      var sekarang = new Date();
+      var bulanNama = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
+      var tglStr = sekarang.getDate() + ' ' + bulanNama[sekarang.getMonth()] + ' ' + sekarang.getFullYear();
+      var jamStr = ('0' + sekarang.getHours()).slice(-2) + '.' + ('0' + sekarang.getMinutes()).slice(-2) + '.' + ('0' + sekarang.getSeconds()).slice(-2);
+      
+      var namaPeserta = document.getElementById('nama').value.trim() || 'Peserta';
+      var jabatanPeserta = document.getElementById('jabatan').value.trim() || '-';
+      var namaTempatRapat = rapatTerpilih ? rapatTerpilih.lokasiNama : 'Lokasi Rapat';
+      
+      var partsAlamat = alamatGpsPeserta.split(',');
+      var lineObjects = [
+        { text: tglStr + ' ' + jamStr, font: 'bold 14px sans-serif', color: '#ffffff' },
+        { text: 'Nama: ' + namaPeserta + ' (' + jabatanPeserta + ')', font: 'bold 13px sans-serif', color: '#38bdf8' }
+      ];
+
+      if (partsAlamat[0] && partsAlamat[0].trim() !== namaTempatRapat) lineObjects.push({ text: partsAlamat[0].trim(), font: '12px sans-serif', color: '#ffffff' });
+      if (partsAlamat[1]) lineObjects.push({ text: partsAlamat[1].trim(), font: '12px sans-serif', color: '#ffffff' });
+      lineObjects.push({ text: 'GPS: ' + gpsPesertaLat + ', ' + gpsPesertaLng, font: '11px sans-serif', color: '#38bdf8', hasPin: true });
+
+      var maxWidth = 0;
+      lineObjects.forEach(item => {
+        ctx.font = item.font;
+        var w = ctx.measureText(item.text).width + (item.hasPin ? 20 : 0);
+        if (w > maxWidth) maxWidth = w;
+      });
+
+      var boxWidth = maxWidth + 24;
+      var boxHeight = (lineObjects.length * 18) + 24;
+      var boxX = canvas.width - boxWidth - 15;
+      var boxY = canvas.height - boxHeight - 15;
+
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+      ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
+
+      var currentY = boxY + 24;
+      lineObjects.forEach(item => {
+        ctx.font = item.font;
+        ctx.fillStyle = item.color;
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+        ctx.shadowBlur = 3;
+        ctx.shadowOffsetX = 1; ctx.shadowOffsetY = 1;
+
+        var textW = ctx.measureText(item.text).width;
+        var drawX = boxX + boxWidth - 12 - textW;
+
+        if (item.hasPin) {
+          drawX -= 16;
+          ctx.fillText(item.text, drawX + 16, currentY);
+          ctx.save();
+          ctx.translate(drawX + 8, currentY - 4);
+          ctx.fillStyle = '#ef4444';
+          ctx.beginPath(); ctx.arc(0, -3, 4.5, 0, Math.PI * 2); ctx.fill();
+          ctx.lineWidth = 1; ctx.strokeStyle = '#ffffff'; ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(-2.5, 0); ctx.lineTo(0, 4.5); ctx.lineTo(2.5, 0); ctx.fill();
+          ctx.restore();
+        } else {
+          ctx.fillText(item.text, drawX, currentY);
+        }
+        ctx.shadowColor = 'transparent';
+        currentY += 18;
+      });
+
+      fotoBase64 = canvas.toDataURL('image/jpeg', 0.85);
+      var preview = document.getElementById('previewFoto');
+      preview.src = fotoBase64;
+      preview.classList.remove('hidden');
+      document.getElementById('btnAmbilFoto').classList.add('hidden');
+      document.getElementById('btnUlangFoto').classList.remove('hidden');
+      validasiTombolKirim();
+    }
+
+    function ulangFotoKamera() {
+      fotoBase64 = null;
+      stopCamera();
+      document.getElementById('previewFoto').classList.add('hidden');
+      document.getElementById('btnUlangFoto').classList.add('hidden');
+      document.getElementById('btnNyalakanKamera').classList.remove('hidden');
+      validasiTombolKirim();
+    }
+
+    function validasiTombolKirim() {
+      var hasFoto = fotoBase64 !== null;
+      var nama = document.getElementById('nama').value.trim();
+      var jabatan = document.getElementById('jabatan').value.trim();
+      document.getElementById('btnKirim').disabled = !(hasFoto && nama && jabatan);
+    }
+
+    document.getElementById('nama').addEventListener('input', validasiTombolKirim);
+    document.getElementById('jabatan').addEventListener('input', validasiTombolKirim);
+
+    function resetPilihRapat() {
+      stopCamera();
+      document.getElementById('panelPilihRapat').classList.remove('hidden');
+      document.getElementById('panelIsiAbsen').classList.add('hidden');
+    }
+
+    function bukaPreviewCetak() {
+      var idx = document.getElementById('pilihRapatNotulen').value;
+      if (idx === "") { showModal('Perhatian', 'Pilih Code Meeting!', 'error'); return; }
+      var r = daftarRapatData[idx];
+      
+      callServerGet('getDetailPeserta', 'code=' + r.code, function(pesertaList) {
+        document.getElementById('repCode').innerText = ': ' + r.code;
+        document.getElementById('repAcara').innerText = ': ' + r.acara;
+        document.getElementById('repPembahasan').innerText = ': ' + r.pembahasan;
+        document.getElementById('repWaktu').innerText = ': ' + r.hari + ', ' + formatTanggalBersih(r.tanggal);
+        document.getElementById('repLokasi').innerText = ': ' + r.lokasiNama;
+        document.getElementById('repJml').innerText = ': ' + pesertaList.length + ' Orang';
+        document.getElementById('repIsiNotulen').innerText = document.getElementById('notIsi').value.trim() || '(Belum ada catatan)';
+        
+        var tbody = document.querySelector('#tabelPesertaLaporan tbody');
+        tbody.innerHTML = '';
+        pesertaList.forEach((p, i) => {
+          tbody.innerHTML += '<tr><td style="padding: 4px; text-align: center;">' + (i+1) + '</td><td style="padding: 4px;">' + p.nama + '</td><td style="padding: 4px;">' + p.jabatan + '</td></tr>';
+        });
+        
+        document.getElementById('formNotulenBox').classList.add('hidden');
+        document.getElementById('cardLaporan').classList.remove('hidden');
+      });
+    }
+
+    function tutupPreviewCetak() {
+      document.getElementById('cardLaporan').classList.add('hidden');
+      document.getElementById('formNotulenBox').classList.remove('hidden');
+    }
+
+    function showModal(title, message, type) {
+      if (!type) type = 'success';
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('modalMessage').innerText = message;
+      var iconBox = document.getElementById('modalIconBox');
+      iconBox.className = 'modal-icon ' + type;
+      iconBox.innerHTML = type === 'success' ? '✓' : '✕';
+      document.getElementById('modalOverlay').classList.add('active');
+    }
+
+    function tutupModal() { document.getElementById('modalOverlay').classList.remove('active'); }
+  </script>
+</body>
+</html>
