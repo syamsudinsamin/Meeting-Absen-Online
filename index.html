@@ -108,6 +108,40 @@
       color: #ffffff;
     }
 
+    .login-banner-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border-bottom: 1.5px solid #f1f5f9;
+      padding-bottom: 14px;
+      margin-bottom: 18px;
+    }
+
+    .login-logo-box {
+      width: 54px;
+      height: 54px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 4px;
+    }
+
+    .login-logo-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .login-title-center {
+      flex: 1;
+      text-align: center;
+    }
+
     .menu-grid-6 {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -348,8 +382,19 @@
 
     <!-- HALAMAN LOGIN -->
     <div id="halamanLogin" class="content-card">
-      <h3 style="text-align: center; border-bottom: none; margin-bottom: 4px;">LOGIN SYSTEM</h3>
-      <p style="text-align: center; font-size: 11.5px; color: var(--text-muted); margin-top: 0; margin-bottom: 18px; border-bottom: 1.5px solid #f1f5f9; padding-bottom: 12px;">Deploy by : Syamsudin Samin</p>
+      <div class="login-banner-row">
+        <div class="login-logo-box" title="Logo Kota Depok">
+          <img id="logoKiriLogin" src="logo-depok.png" alt="Logo Kota Depok" class="login-logo-img" onerror="this.style.display='none';">
+        </div>
+        <div class="login-title-center">
+          <h3 style="text-align: center; border-bottom: none; margin-bottom: 2px; padding-bottom: 0;">LOGIN SYSTEM</h3>
+          <p style="text-align: center; font-size: 11.5px; color: var(--text-muted); margin: 0;">Deploy by : Syamsudin Samin</p>
+        </div>
+        <div class="login-logo-box" title="Logo POKMAS MAWAR RW.004">
+          <img id="logoKananLogin" src="logo-pokmas-rw04.png" alt="Logo POKMAS MAWAR RW.004" class="login-logo-img" onerror="this.style.display='none';">
+        </div>
+      </div>
+
       <form id="formLogin">
         <label>Username</label>
         <input type="text" id="loginUser" placeholder="Masukkan username" required>
@@ -684,6 +729,8 @@
 
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxRE2erMH6CbhOp0tJiSIqK6LRk6QUX8inV8avQfdNmeASJIv6HLTMya9e9vsEKQTnu/exec";
+    const LOGO_KIRI_URL = "logo-depok.png";
+    const LOGO_KANAN_URL = "logo-pokmas-rw04.png";
 
     var roleLogin = '';
     var daftarRapatData = [];
@@ -729,6 +776,10 @@
     }
 
     window.onload = function() {
+      var imgKiri = document.getElementById('logoKiriLogin');
+      var imgKanan = document.getElementById('logoKananLogin');
+      if (imgKiri && LOGO_KIRI_URL) imgKiri.src = LOGO_KIRI_URL;
+      if (imgKanan && LOGO_KANAN_URL) imgKanan.src = LOGO_KANAN_URL;
       muatTtdServer();
       inisialisasiTimePicker();
     };
