@@ -51,7 +51,7 @@
       box-shadow: 0 12px 24px -6px rgba(2, 132, 199, 0.35);
       border-radius: 20px;
       max-width: 560px;
-      margin: 0 auto 14px auto;
+      margin: 0 auto 12px auto;
       border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
@@ -76,28 +76,25 @@
 
     .top-session-bar {
       max-width: 560px;
-      margin: 0 auto 14px auto;
+      margin: 0 auto 12px auto;
       display: flex;
       justify-content: flex-end;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       font-size: 12px;
-      color: var(--text-muted);
-      background: rgba(255, 255, 255, 0.8);
-      backdrop-filter: blur(8px);
-      padding: 8px 14px;
-      border-radius: 999px;
-      border: 1px solid #e2e8f0;
-      box-shadow: var(--shadow-sm);
+      color: #334155;
+      padding: 0 4px;
     }
 
     .btn-logout-circle {
       width: 30px;
       height: 30px;
       border-radius: 50%;
-      border: 1.5px solid #fecaca;
+      border: 1.5px solid #ef4444;
       background: #fef2f2;
       color: #dc2626;
+      font-size: 14px;
+      font-weight: 800;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
@@ -108,12 +105,10 @@
 
     .btn-logout-circle:hover {
       background: #dc2626;
-      border-color: #dc2626;
       color: #ffffff;
-      transform: scale(1.05);
     }
 
-    .menu-grid-5 {
+    .menu-grid-6 {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 14px;
@@ -121,7 +116,7 @@
     }
 
     @media (min-width: 640px) {
-      .menu-grid-5 {
+      .menu-grid-6 {
         grid-template-columns: repeat(3, 1fr);
       }
     }
@@ -161,12 +156,14 @@
     .menu-card.card-3:hover { border-color: #60a5fa; }
     .menu-card.card-4:hover { border-color: #fbbf24; }
     .menu-card.card-5:hover { border-color: #a78bfa; }
+    .menu-card.card-6:hover { border-color: #f472b6; }
 
     .card-1 .menu-icon-wrap { background: #ecfdf5; }
     .card-2 .menu-icon-wrap { background: #e0f2fe; }
     .card-3 .menu-icon-wrap { background: #eff6ff; }
     .card-4 .menu-icon-wrap { background: #fffbeb; }
     .card-5 .menu-icon-wrap { background: #f5f3ff; }
+    .card-6 .menu-icon-wrap { background: #fdf2f8; }
 
     .menu-icon-img { width: 34px; height: 34px; object-fit: contain; }
     .menu-title { font-size: 13.5px; font-weight: 800; color: var(--text-main); margin-bottom: 4px; letter-spacing: -0.01em; }
@@ -346,13 +343,7 @@
     <!-- BARIS STATUS LOGIN & TOMBOL LOG OUT BULAT KECIL -->
     <div id="barisSesiUser" class="top-session-bar hidden">
       <span>Login sebagai: <b id="lblRoleAktif" style="color: var(--primary); text-transform: uppercase;">-</b></span>
-      <button type="button" class="btn-logout-circle" onclick="prosesLogout()" title="Log Out" aria-label="Log Out">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-          <polyline points="16 17 21 12 16 7"></polyline>
-          <line x1="21" y1="12" x2="9" y2="12"></line>
-        </svg>
-      </button>
+      <button type="button" class="btn-logout-circle" onclick="prosesLogout()" title="Log Out" aria-label="Log Out">⏻</button>
     </div>
 
     <!-- HALAMAN LOGIN -->
@@ -368,9 +359,9 @@
       </form>
     </div>
 
-    <!-- HALAMAN MENU UTAMA (5 KARTU MENU) -->
+    <!-- HALAMAN MENU UTAMA (6 KARTU MENU) -->
     <div id="halamanMenuUtama" class="hidden" style="max-width: 560px; margin: 0 auto;">
-      <div class="menu-grid-5">
+      <div class="menu-grid-6">
         <div class="menu-card card-1" onclick="bukaFormAcara()">
           <div class="menu-icon-wrap">
             <img src="https://cdn-icons-png.flaticon.com/512/1184/1184438.png" alt="Rapat" class="menu-icon-img">
@@ -405,6 +396,13 @@
           </div>
           <div class="menu-title">LAPORAN DAFTAR HADIR</div>
           <div class="menu-subtitle">Nama, Jabatan &amp; Foto per Meeting</div>
+        </div>
+        <div class="menu-card card-6" onclick="bukaRekapMeeting()">
+          <div class="menu-icon-wrap">
+            <img src="https://cdn-icons-png.flaticon.com/512/1828/1828743.png" alt="Rekap Meeting" class="menu-icon-img">
+          </div>
+          <div class="menu-title">REKAP MEETING</div>
+          <div class="menu-subtitle">Ringkasan Jadwal &amp; Kehadiran</div>
         </div>
       </div>
     </div>
@@ -650,6 +648,17 @@
         <button type="button" class="btn btn-secondary" onclick="kembaliKeMenu()" style="margin-top: 14px;">⬅️ BACK TO MENU</button>
       </div>
     </div>
+
+    <!-- HALAMAN 6: REKAP MEETING -->
+    <div id="halamanRekapMeeting" class="hidden">
+      <div class="content-card">
+        <h3>REKAP MEETING</h3>
+        <div id="rekapMeetingList" class="info-box" style="background: #ffffff; border-color: #e2e8f0; margin-top: 0;">
+          Memuat rekap meeting...
+        </div>
+        <button type="button" class="btn btn-secondary" onclick="kembaliKeMenu()" style="margin-top: 14px;">⬅️ BACK TO MENU</button>
+      </div>
+    </div>
   </div>
 
   <!-- MODAL TIME PICKER -->
@@ -785,6 +794,7 @@
       document.getElementById('halamanDaftarHadir').classList.add('hidden');
       document.getElementById('halamanNotulen').classList.add('hidden');
       document.getElementById('halamanLaporanDaftarHadir').classList.add('hidden');
+      document.getElementById('halamanRekapMeeting').classList.add('hidden');
       document.getElementById('halamanLogin').classList.remove('hidden');
       stopCamera();
     }
@@ -830,6 +840,31 @@
       loadDropdownDaftarHadir();
     }
 
+    function bukaRekapMeeting() {
+      document.getElementById('halamanMenuUtama').classList.add('hidden');
+      document.getElementById('halamanRekapMeeting').classList.remove('hidden');
+      var box = document.getElementById('rekapMeetingList');
+      box.innerHTML = 'Memuat rekap meeting...';
+      callServerGet('getDaftarRapat', '', function(data) {
+        daftarRapatData = data || [];
+        if (daftarRapatData.length === 0) {
+          box.innerHTML = 'Belum ada jadwal meeting.';
+          return;
+        }
+        var html = '<table class="tabel-daftar-hadir"><thead><tr><th>Kode</th><th>Acara</th><th>Tanggal</th><th>Hadir</th></tr></thead><tbody>';
+        daftarRapatData.forEach(function(r) {
+          html += '<tr>' +
+            '<td style="text-align:center;font-weight:700;">' + (r.code || '-') + '</td>' +
+            '<td>' + (r.acara || '-') + '</td>' +
+            '<td>' + formatTanggalBersih(r.tanggal) + '</td>' +
+            '<td style="text-align:center;font-weight:700;">' + (r.jumlahPeserta || 0) + '</td>' +
+            '</tr>';
+        });
+        html += '</tbody></table>';
+        box.innerHTML = html;
+      });
+    }
+
     function kembaliKeMenu() {
       stopCamera();
       document.getElementById('halamanMenuUtama').classList.remove('hidden');
@@ -838,6 +873,7 @@
       document.getElementById('halamanDaftarHadir').classList.add('hidden');
       document.getElementById('halamanNotulen').classList.add('hidden');
       document.getElementById('halamanLaporanDaftarHadir').classList.add('hidden');
+      document.getElementById('halamanRekapMeeting').classList.add('hidden');
     }
 
     function isiOpsiRapat(selectEl, data) {
