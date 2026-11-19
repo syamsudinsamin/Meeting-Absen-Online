@@ -298,7 +298,7 @@
     .box-kamera { border: 2px dashed var(--border-color); border-radius: 14px; padding: 16px; text-align: center; margin-top: 8px; background: #f8fafc; }
     .video-container { position: relative; width: 100%; background: #000; border-radius: 10px; overflow: hidden; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; min-height: 220px; }
     video { width: 100%; height: auto; display: block; }
-    #previewFoto { width: 100%; max-height: 220px; border-radius: 10px; object-fit: contain; margin-bottom: 12px; background: #000; }
+    #previewFoto { width: 100%; max-height: 240px; border-radius: 10px; object-fit: contain; margin-bottom: 12px; background: #000; }
 
     .hidden { display: none !important; }
     .info-box { background: #f0f9ff; border: 1px solid #bae6fd; padding: 14px; border-radius: 14px; font-size: 13px; margin-top: 12px; color: #000; line-height: 1.6; }
@@ -1300,70 +1300,173 @@
       terapkanStempelDanSimpan(canvas, ctx);
     }
 
+    function pecahTeksPerBaris(ctx, teks, maxLebar) {
+      if (!teks) return [];
+      var kataArr = String(teks).trim().split(/\s+/);
+      var barisHasil = [];
+      var barisAktif = '';
+
+      for (var i = 0; i < kataArr.length; i++) {
+        var uji = barisAktif ? (barisAktif + ' ' + kataArr[i]) : kataArr[i];
+        if (ctx.measureText(uji).width <= maxLebar || !barisAktif) {
+          barisAktif = uji;
+        } else {
+          barisHasil.push(barisAktif);
+          barisAktif = kataArr[i];
+        }
+      }
+      if (barisAktif) barisHasil.push(barisAktif);
+      return barisHasil;
+    }
+
+    function gambarKotakRounded(ctx, x, y, w, h, r) {
+      var radius = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.arcTo(x + w, y, x + w, y + h, radius);
+      ctx.arcTo(x + w, y + h, x, y + h, radius);
+      ctx.arcTo(x, y + h, x, y, radius);
+      ctx.arcTo(x, y, x + w, y, radius);
+      ctx.closePath();
+    }
+
     function terapkanStempelDanSimpan(canvas, ctx) {
       var sekarang = new Date();
       var bulanNama = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
       var tglStr = sekarang.getDate() + ' ' + bulanNama[sekarang.getMonth()] + ' ' + sekarang.getFullYear();
-      var jamStr = ('0' + sekarang.getHours()).slice(-2) + '.' + ('0' + sekarang.getMinutes()).slice(-2) + '.' + ('0' + sekarang.getSeconds()).slice(-2);
+      var jamStr = ('0' + sekarang.getHours()).slice(-2) + ':' + ('0' + sekarang.getMinutes()).slice(-2) + ':' + ('0' + sekarang.getSeconds()).slice(-2) + ' WIB';
 
       var namaPeserta = document.getElementById('nama').value.trim() || 'Peserta';
       var jabatanPeserta = document.getElementById('jabatan').value.trim() || '-';
-      var namaTempatRapat = rapatTerpilih ? rapatTerpilih.lokasiNama : 'Lokasi Rapat';
+      var kodeMeeting = rapatTerpilih ? (rapatTerpilih.code || 'MEETING') : 'MEETING';
 
-      var partsAlamat = alamatGpsPeserta.split(',');
-      var lineObjects = [
-        { text: tglStr + ' ' + jamStr, font: 'bold 14px sans-serif', color: '#ffffff' },
-        { text: 'Nama: ' + namaPeserta + ' (' + jabatanPeserta + ')', font: 'bold 13px sans-serif', color: '#38bdf8' }
-      ];
+      var maxBoxLebar = Math.min(Math.round(canvas.width * 0.72), 420);
+      var paddingX = 14;
+      var paddingY = 12;
+      var innerMaxLebar = maxBoxLebar - (paddingX * 2);
 
-      if (partsAlamat[0] && partsAlamat[0].trim() !== namaTempatRapat) lineObjects.push({ text: partsAlamat[0].trim(), font: '12px sans-serif', color: '#ffffff' });
-      if (partsAlamat[1]) lineObjects.push({ text: partsAlamat[1].trim(), font: '12px sans-serif', color: '#ffffff' });
-      lineObjects.push({ text: 'GPS: ' + gpsPesertaLat + ', ' + gpsPesertaLng, font: '11px sans-serif', color: '#38bdf8', hasPin: true });
+      var barisList = [];
 
-      var maxWidth = 0;
-      lineObjects.forEach(item => {
-        ctx.font = item.font;
-        var w = ctx.measureText(item.text).width + (item.hasPin ? 20 : 0);
-        if (w > maxWidth) maxWidth = w;
+      barisList.push({
+        text: tglStr + ' • ' + jamStr,
+        font: '700 13px "Plus Jakarta Sans", sans-serif',
+        color: '#f8fafc',
+        lineHeight: 19,
+        badge: kodeMeeting
       });
 
-      var boxWidth = maxWidth + 24;
-      var boxHeight = (lineObjects.length * 18) + 24;
-      var boxX = canvas.width - boxWidth - 15;
-      var boxY = canvas.height - boxHeight - 15;
+      ctx.font = '700 13.5px "Plus Jakarta Sans", sans-serif';
+      pecahTeksPerBaris(ctx, namaPeserta + ' (' + jabatanPeserta + ')', innerMaxLebar).forEach(function(b) {
+        barisList.push({
+          text: b,
+          font: '700 13.5px "Plus Jakarta Sans", sans-serif',
+          color: '#38bdf8',
+          lineHeight: 19
+        });
+      });
 
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-      ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
+      var alamatBersih = (alamatGpsPeserta && alamatGpsPeserta !== 'Mendeteksi alamat...')
+        ? alamatGpsPeserta
+        : ('Lat: ' + gpsPesertaLat + ', Long: ' + gpsPesertaLng);
+      ctx.font = '500 11.5px "Plus Jakarta Sans", sans-serif';
+      pecahTeksPerBaris(ctx, alamatBersih, innerMaxLebar).slice(0, 3).forEach(function(b) {
+        barisList.push({
+          text: b,
+          font: '500 11.5px "Plus Jakarta Sans", sans-serif',
+          color: '#e2e8f0',
+          lineHeight: 16
+        });
+      });
 
-      var currentY = boxY + 24;
-      lineObjects.forEach(item => {
+      barisList.push({
+        text: 'GPS: ' + gpsPesertaLat + ', ' + gpsPesertaLng,
+        font: '600 11.5px "Plus Jakarta Sans", sans-serif',
+        color: '#7dd3fc',
+        lineHeight: 18,
+        hasPin: true
+      });
+
+      var terpanjangTeks = 0;
+      barisList.forEach(function(item) {
         ctx.font = item.font;
-        ctx.fillStyle = item.color;
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-        ctx.shadowBlur = 3;
-        ctx.shadowOffsetX = 1; ctx.shadowOffsetY = 1;
-
-        var textW = ctx.measureText(item.text).width;
-        var drawX = boxX + boxWidth - 12 - textW;
-
-        if (item.hasPin) {
-          drawX -= 16;
-          ctx.fillText(item.text, drawX + 16, currentY);
-          ctx.save();
-          ctx.translate(drawX + 8, currentY - 4);
-          ctx.fillStyle = '#ef4444';
-          ctx.beginPath(); ctx.arc(0, -3, 4.5, 0, Math.PI * 2); ctx.fill();
-          ctx.lineWidth = 1; ctx.strokeStyle = '#ffffff'; ctx.stroke();
-          ctx.beginPath(); ctx.moveTo(-2.5, 0); ctx.lineTo(0, 4.5); ctx.lineTo(2.5, 0); ctx.fill();
-          ctx.restore();
-        } else {
-          ctx.fillText(item.text, drawX, currentY);
+        var lebarItem = ctx.measureText(item.text).width + (item.hasPin ? 18 : 0);
+        if (item.badge) {
+          ctx.font = '700 10px "Plus Jakarta Sans", sans-serif';
+          lebarItem += ctx.measureText(item.badge).width + 20;
         }
-        ctx.shadowColor = 'transparent';
-        currentY += 18;
+        if (lebarItem > terpanjangTeks) terpanjangTeks = lebarItem;
       });
 
-      fotoBase64 = canvas.toDataURL('image/jpeg', 0.85);
+      var boxWidth = Math.min(Math.max(Math.ceil(terpanjangTeks) + (paddingX * 2), 210), maxBoxLebar);
+      var totalTinggiBaris = barisList.reduce(function(acc, it) { return acc + it.lineHeight; }, 0);
+      var boxHeight = totalTinggiBaris + (paddingY * 2);
+
+      var marginLuar = 14;
+      var boxX = Math.max(marginLuar, canvas.width - boxWidth - marginLuar);
+      var boxY = Math.max(marginLuar, canvas.height - boxHeight - marginLuar);
+
+      ctx.save();
+      gambarKotakRounded(ctx, boxX, boxY, boxWidth, boxHeight, 12);
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.74)';
+      ctx.fill();
+      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = 'rgba(125, 211, 252, 0.45)';
+      ctx.stroke();
+
+      var currentY = boxY + paddingY;
+      barisList.forEach(function(item) {
+        ctx.font = item.font;
+        var midY = currentY + (item.lineHeight / 2) + 4;
+
+        if (item.badge) {
+          ctx.font = '700 9.5px "Plus Jakarta Sans", sans-serif';
+          var badgeW = ctx.measureText(item.badge).width + 10;
+          var badgeH = 16;
+          var badgeX = boxX + boxWidth - paddingX - badgeW;
+          var badgeY = currentY + 1;
+
+          gambarKotakRounded(ctx, badgeX, badgeY, badgeW, badgeH, 5);
+          ctx.fillStyle = '#0284c7';
+          ctx.fill();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.textAlign = 'center';
+          ctx.fillText(item.badge, badgeX + (badgeW / 2), badgeY + 11.5);
+          ctx.textAlign = 'left';
+
+          ctx.font = item.font;
+          ctx.fillStyle = item.color;
+          ctx.fillText(item.text, boxX + paddingX, midY);
+        } else if (item.hasPin) {
+          var pinX = boxX + paddingX + 6;
+          var pinY = midY - 3;
+          ctx.fillStyle = '#ef4444';
+          ctx.beginPath();
+          ctx.arc(pinX, pinY - 3, 4.2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = '#ffffff';
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(pinX - 2.3, pinY);
+          ctx.lineTo(pinX, pinY + 4.5);
+          ctx.lineTo(pinX + 2.3, pinY);
+          ctx.fill();
+
+          ctx.font = item.font;
+          ctx.fillStyle = item.color;
+          ctx.fillText(item.text, boxX + paddingX + 18, midY);
+        } else {
+          ctx.font = item.font;
+          ctx.fillStyle = item.color;
+          ctx.fillText(item.text, boxX + paddingX, midY);
+        }
+
+        currentY += item.lineHeight;
+      });
+      ctx.restore();
+
+      fotoBase64 = canvas.toDataURL('image/jpeg', 0.88);
       var preview = document.getElementById('previewFoto');
       preview.src = fotoBase64;
       preview.classList.remove('hidden');
