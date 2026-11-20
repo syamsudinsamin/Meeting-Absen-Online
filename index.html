@@ -277,6 +277,40 @@
     .btn-print { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); box-shadow: 0 6px 14px -3px rgba(6, 182, 212, 0.3); }
     .btn-download { background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 6px 14px -3px rgba(16, 185, 129, 0.3); }
 
+    .camera-mode-select {
+      margin-top: 4px;
+      margin-bottom: 10px;
+      padding: 10px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      background: #ffffff;
+    }
+
+    .camera-active-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .camera-active-actions .btn {
+      margin-top: 0;
+    }
+
+    .btn-switch-cam {
+      flex: 0.65;
+      background: #e0f2fe;
+      color: #0369a1;
+      border: 1.5px solid #7dd3fc;
+      box-shadow: none;
+      font-size: 12.5px;
+      padding: 12px 10px;
+    }
+
+    .btn-switch-cam:hover {
+      background: #bae6fd;
+      box-shadow: none;
+    }
+
     .time-picker-container { display: flex; gap: 10px; margin-top: 6px; }
     .time-box {
       flex: 1; background: #f8fafc; border: 1.5px solid var(--border-color);
@@ -638,8 +672,14 @@
             <input type="text" id="nama" placeholder="Masukkan nama Anda" required>
             <label>Jabatan</label>
             <input type="text" id="jabatan" placeholder="Contoh: Ketua / Anggota / Warga" required>
-            <label>Foto Selfie Kehadiran (Stempel GPS Map Camera)</label>
+            <label>Foto Kehadiran (Stempel GPS Map Camera)</label>
             <div class="box-kamera">
+              <label for="pilihanKamera" style="margin-top: 0; font-size: 12px; text-align: left;">Pilih Kamera HP / Perangkat</label>
+              <select id="pilihanKamera" class="camera-mode-select" onchange="gantiModeKamera()">
+                <option value="environment">📷 Kamera Belakang (Default)</option>
+                <option value="user">🤳 Kamera Depan</option>
+              </select>
+
               <div id="videoContainer" class="video-container hidden">
                 <video id="videoElement" autoplay playsinline muted></video>
               </div>
@@ -647,7 +687,12 @@
               <img id="previewFoto" class="hidden" alt="Preview Foto">
 
               <button type="button" class="btn" id="btnNyalakanKamera" onclick="startCamera()">📸 1. NYALAKAN KAMERA</button>
-              <button type="button" class="btn btn-download hidden" id="btnAmbilFoto" onclick="captureSnapshot()">📷 2. AMBIL FOTO</button>
+
+              <div id="aksiKameraAktif" class="camera-active-actions hidden">
+                <button type="button" class="btn btn-download" id="btnAmbilFoto" onclick="captureSnapshot()">📷 2. AMBIL FOTO</button>
+                <button type="button" class="btn btn-switch-cam" id="btnTukarKamera" onclick="tukarKamera()">🔄 Tukar Kamera</button>
+              </div>
+
               <button type="button" class="btn btn-secondary hidden" id="btnUlangFoto" onclick="ulangFotoKamera()" style="margin-top: 8px;">🔄 Ambil Ulang Foto</button>
             </div>
             <button type="submit" class="btn" id="btnKirim" disabled>SEND ABSENSI</button>
@@ -814,6 +859,7 @@
     };
     var ttdBase64Global = '';
     var mediaStreamGlobal = null;
+    var facingModeAktif = 'environment';
 
     function callServerGet(action, paramQuery, callback) {
       var url = SCRIPT_URL + '?action=' + action + (paramQuery ? '&' + paramQuery : '');
@@ -1344,25 +1390,73 @@
       }
     }
 
+    function mintaStreamKamera(modeKamera) {
+      var constraintsUtama = {
+        video: {
+          facingMode: { ideal: modeKamera },
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        audio: false
+      };
+
+      return navigator.mediaDevices.getUserMedia(constraintsUtama).catch(function() {
+        return navigator.mediaDevices.getUserMedia({
+          video: { facingMode: modeKamera },
+          audio: false
+        }).catch(function() {
+          return navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false
+          });
+        });
+      });
+    }
+
     function startCamera() {
+      var selectKamera = document.getElementById('pilihanKamera');
+      facingModeAktif = selectKamera ? (selectKamera.value || 'environment') : 'environment';
+
       var videoContainer = document.getElementById('videoContainer');
       var videoElement = document.getElementById('videoElement');
       var btnNyalakan = document.getElementById('btnNyalakanKamera');
-      var btnAmbil = document.getElementById('btnAmbilFoto');
+      var aksiAktif = document.getElementById('aksiKameraAktif');
+
+      if (mediaStreamGlobal) {
+        mediaStreamGlobal.getTracks().forEach(track => track.stop());
+        mediaStreamGlobal = null;
+      }
 
       videoContainer.classList.remove('hidden');
-      navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 }, audio: false })
+      mintaStreamKamera(facingModeAktif)
         .then(stream => {
           mediaStreamGlobal = stream;
           videoElement.srcObject = stream;
           videoElement.play();
           btnNyalakan.classList.add('hidden');
-          btnAmbil.classList.remove('hidden');
+          aksiAktif.classList.remove('hidden');
         })
         .catch(err => {
           showModal('Gagal', 'Tidak dapat mengakses kamera: ' + err.message, 'error');
           videoContainer.classList.add('hidden');
+          btnNyalakan.classList.remove('hidden');
+          aksiAktif.classList.add('hidden');
         });
+    }
+
+    function gantiModeKamera() {
+      var selectKamera = document.getElementById('pilihanKamera');
+      facingModeAktif = selectKamera ? (selectKamera.value || 'environment') : 'environment';
+      if (mediaStreamGlobal) {
+        startCamera();
+      }
+    }
+
+    function tukarKamera() {
+      facingModeAktif = (facingModeAktif === 'environment') ? 'user' : 'environment';
+      var selectKamera = document.getElementById('pilihanKamera');
+      if (selectKamera) selectKamera.value = facingModeAktif;
+      startCamera();
     }
 
     function stopCamera() {
@@ -1372,6 +1466,7 @@
       }
       document.getElementById('videoElement').srcObject = null;
       document.getElementById('videoContainer').classList.add('hidden');
+      document.getElementById('aksiKameraAktif').classList.add('hidden');
     }
 
     function captureSnapshot() {
@@ -1466,7 +1561,6 @@
 
       var barisList = [];
 
-      // Baris 1: Wilayah utama + bendera merah putih
       ctx.font = '700 14.5px "Plus Jakarta Sans", sans-serif';
       var judulWilayah = kec + ', ' + kota + ', ' + negara;
       pecahTeksPerBaris(ctx, judulWilayah, innerMaxLebar - 26).forEach(function(b, idx) {
@@ -1479,7 +1573,6 @@
         });
       });
 
-      // Baris 2: Peserta + kode meeting
       ctx.font = '700 12px "Plus Jakarta Sans", sans-serif';
       pecahTeksPerBaris(ctx, namaPeserta + ' • ' + jabatanPeserta + ' [' + kodeMeeting + ']', innerMaxLebar).forEach(function(b) {
         barisList.push({
@@ -1490,7 +1583,6 @@
         });
       });
 
-      // Baris 3: Alamat detail GPS
       var alamatLengkap = (alamatGpsPeserta && alamatGpsPeserta !== 'Mendeteksi alamat...')
         ? alamatGpsPeserta
         : (kec + ', ' + kota + ', ' + negara);
@@ -1504,7 +1596,6 @@
         });
       });
 
-      // Baris 4: Koordinat Lat & Long
       barisList.push({
         text: 'Lat ' + gpsPesertaLat + '°  Long ' + gpsPesertaLng + '°',
         font: '600 11px "Plus Jakarta Sans", sans-serif',
@@ -1512,7 +1603,6 @@
         lineHeight: 16
       });
 
-      // Baris 5: Hari, tanggal, jam & GMT
       barisList.push({
         text: formatWaktuGpsMapCamera(sekarang),
         font: '500 11px "Plus Jakarta Sans", sans-serif',
@@ -1535,7 +1625,6 @@
       var boxX = Math.max(marginLuar, canvas.width - boxWidth - marginLuar);
       var boxY = Math.max(marginLuar + 18, canvas.height - boxHeight - marginLuar);
 
-      // Tab badge kecil di kanan atas kotak ("GPS Map Camera")
       var badgeText = 'GPS Map Camera';
       ctx.font = '700 10px "Plus Jakarta Sans", sans-serif';
       var badgeW = Math.min(ctx.measureText(badgeText).width + 24, boxWidth - 16);
@@ -1548,7 +1637,6 @@
       ctx.fillStyle = 'rgba(30, 32, 34, 0.82)';
       ctx.fill();
 
-      // Ikon pin mini pada badge
       ctx.fillStyle = '#22c55e';
       ctx.beginPath();
       ctx.arc(badgeX + 9, badgeY + 8, 3.2, 0, Math.PI * 2);
@@ -1558,7 +1646,6 @@
       ctx.font = '700 9.8px "Plus Jakarta Sans", sans-serif';
       ctx.fillText(badgeText, badgeX + 16, badgeY + 12.5);
 
-      // Kotak utama stempel
       gambarKotakRounded(ctx, boxX, boxY, boxWidth, boxHeight, 8);
       ctx.fillStyle = 'rgba(30, 32, 34, 0.78)';
       ctx.fill();
@@ -1590,7 +1677,7 @@
       var preview = document.getElementById('previewFoto');
       preview.src = fotoBase64;
       preview.classList.remove('hidden');
-      document.getElementById('btnAmbilFoto').classList.add('hidden');
+      document.getElementById('aksiKameraAktif').classList.add('hidden');
       document.getElementById('btnUlangFoto').classList.remove('hidden');
       validasiTombolKirim();
     }
