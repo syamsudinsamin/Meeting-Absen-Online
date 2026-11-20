@@ -11,15 +11,16 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     :root {
-      --primary: #0284c7;
-      --primary-dark: #0369a1;
-      --bg-color: #f1f5f9;
+      --primary: #0f766e;
+      --primary-dark: #115e59;
+      --accent: #0ea5e9;
+      --bg-color: #eef2f6;
       --card-bg: #ffffff;
       --text-main: #0f172a;
       --text-muted: #475569;
       --border-color: #cbd5e1;
-      --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
-      --shadow-md: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
+      --shadow-sm: 0 4px 14px rgba(15, 23, 42, 0.05);
+      --shadow-md: 0 14px 30px -8px rgba(15, 23, 42, 0.10), 0 4px 12px -3px rgba(15, 23, 42, 0.05);
     }
 
     * {
@@ -28,9 +29,12 @@
 
     body {
       font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-      background: radial-gradient(circle at top right, #e0f2fe 0%, #f8fafc 45%, #f1f5f9 100%);
+      background:
+        radial-gradient(circle at 12% 8%, rgba(13, 148, 136, 0.14) 0%, transparent 42%),
+        radial-gradient(circle at 90% 15%, rgba(14, 165, 233, 0.12) 0%, transparent 40%),
+        linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
       margin: 0;
-      padding: 22px 0;
+      padding: 20px 0;
       color: var(--text-main);
       min-height: 100vh;
       overflow-x: hidden;
@@ -44,27 +48,38 @@
     }
 
     .app-header {
-      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      background: linear-gradient(135deg, #0f766e 0%, #0d9488 55%, #0284c7 100%);
       color: #ffffff;
       padding: 20px 18px;
       text-align: center;
-      box-shadow: 0 12px 24px -6px rgba(2, 132, 199, 0.35);
-      border-radius: 20px;
+      box-shadow: 0 14px 28px -8px rgba(15, 118, 110, 0.38);
+      border-radius: 22px;
       max-width: 560px;
       margin: 0 auto 12px auto;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .app-header::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, rgba(255, 255, 255, 0.14) 0%, transparent 55%);
+      pointer-events: none;
     }
 
     .app-header-badge {
       display: inline-block;
       font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
+      font-weight: 800;
+      letter-spacing: 0.09em;
       text-transform: uppercase;
-      background: rgba(255, 255, 255, 0.18);
-      padding: 4px 10px;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 4px 12px;
       border-radius: 999px;
       margin-bottom: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
     }
 
     .app-header-title {
@@ -82,8 +97,12 @@
       align-items: center;
       gap: 8px;
       font-size: 12px;
-      color: #334155;
-      padding: 0 4px;
+      color: #1e293b;
+      padding: 6px 10px;
+      background: rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(203, 213, 225, 0.8);
+      border-radius: 999px;
     }
 
     .btn-logout-circle {
@@ -104,6 +123,7 @@
     .btn-logout-circle:hover {
       background: #dc2626;
       color: #ffffff;
+      transform: scale(1.04);
     }
 
     .login-banner-row {
@@ -111,23 +131,24 @@
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      border-bottom: 1.5px solid #f1f5f9;
-      padding-bottom: 14px;
+      border-bottom: 1.5px solid #e2e8f0;
+      padding-bottom: 16px;
       margin-bottom: 18px;
     }
 
     .login-logo-box {
-      width: 56px;
-      height: 56px;
+      width: 58px;
+      height: 58px;
       flex-shrink: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 4px;
+      background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+      border: 1.5px solid #cbd5e1;
+      border-radius: 14px;
+      padding: 5px;
       overflow: hidden;
+      box-shadow: 0 3px 8px rgba(15, 23, 42, 0.05);
     }
 
     .login-logo-img {
@@ -156,28 +177,51 @@
 
     .menu-card {
       background: var(--card-bg);
-      border-radius: 20px;
+      border-radius: 22px;
       padding: 20px 14px;
       text-align: center;
       cursor: pointer;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
       box-shadow: var(--shadow-sm);
       border: 1px solid #e2e8f0;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      position: relative;
+      overflow: hidden;
     }
+
+    .menu-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      opacity: 0.85;
+    }
+
+    .menu-card.card-1::before { background: #10b981; }
+    .menu-card.card-2::before { background: #0284c7; }
+    .menu-card.card-3::before { background: #0d9488; }
+    .menu-card.card-4::before { background: #f59e0b; }
+    .menu-card.card-5::before { background: #6366f1; }
+    .menu-card.card-6::before { background: #ec4899; }
 
     .menu-card:hover {
       transform: translateY(-4px);
       box-shadow: var(--shadow-md);
     }
 
+    .menu-card:active {
+      transform: scale(0.98);
+    }
+
     .menu-icon-wrap {
       width: 58px;
       height: 58px;
-      border-radius: 16px;
+      border-radius: 18px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -186,16 +230,16 @@
 
     .menu-card.card-1:hover { border-color: #34d399; }
     .menu-card.card-2:hover { border-color: #38bdf8; }
-    .menu-card.card-3:hover { border-color: #60a5fa; }
+    .menu-card.card-3:hover { border-color: #2dd4bf; }
     .menu-card.card-4:hover { border-color: #fbbf24; }
-    .menu-card.card-5:hover { border-color: #a78bfa; }
+    .menu-card.card-5:hover { border-color: #a5b4fc; }
     .menu-card.card-6:hover { border-color: #f472b6; }
 
     .card-1 .menu-icon-wrap { background: #ecfdf5; }
     .card-2 .menu-icon-wrap { background: #e0f2fe; }
-    .card-3 .menu-icon-wrap { background: #eff6ff; }
+    .card-3 .menu-icon-wrap { background: #f0fdfa; }
     .card-4 .menu-icon-wrap { background: #fffbeb; }
-    .card-5 .menu-icon-wrap { background: #f5f3ff; }
+    .card-5 .menu-icon-wrap { background: #eef2ff; }
     .card-6 .menu-icon-wrap { background: #fdf2f8; }
 
     .menu-icon-img { width: 34px; height: 34px; object-fit: contain; }
@@ -205,7 +249,7 @@
     .content-card {
       background: var(--card-bg);
       padding: 26px 22px;
-      border-radius: 20px;
+      border-radius: 22px;
       box-shadow: var(--shadow-md);
       border: 1px solid #e2e8f0;
       max-width: 560px;
@@ -218,7 +262,7 @@
       font-weight: 800;
       margin-top: 0;
       margin-bottom: 16px;
-      border-bottom: 1.5px solid #f1f5f9;
+      border-bottom: 1.5px solid #e2e8f0;
       padding-bottom: 10px;
     }
 
@@ -232,22 +276,23 @@
       border-radius: 12px;
       font-family: inherit;
       font-size: 14px;
-      background: #ffffff;
+      background: #f8fafc;
       color: var(--text-main);
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
     }
 
     input:focus, select:focus, textarea:focus {
       outline: none;
+      background: #ffffff;
       border-color: var(--primary);
-      box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.12);
+      box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.14);
     }
 
-    input[readonly], textarea[readonly] { background-color: #f8fafc; color: var(--text-muted); }
+    input[readonly], textarea[readonly] { background-color: #f1f5f9; color: var(--text-muted); }
 
     .btn {
       width: 100%;
-      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
       color: #fff;
       border: none;
       padding: 13px 16px;
@@ -258,24 +303,24 @@
       margin-top: 14px;
       cursor: pointer;
       text-align: center;
-      box-shadow: 0 6px 14px -3px rgba(2, 132, 199, 0.35);
+      box-shadow: 0 6px 16px -4px rgba(15, 118, 110, 0.38);
       transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
 
-    .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 18px -4px rgba(2, 132, 199, 0.45); }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px -4px rgba(15, 118, 110, 0.48); }
     .btn:disabled { background: #cbd5e1; cursor: not-allowed; box-shadow: none; transform: none; }
     .btn-secondary { background: #64748b; box-shadow: 0 4px 10px -2px rgba(100, 116, 139, 0.25); }
     .btn-secondary:hover { background: #475569; }
 
     .btn-gps {
-      background: #f0f9ff; color: #0369a1; border: 1.5px dashed #38bdf8;
+      background: #f0fdfa; color: #0f766e; border: 1.5px dashed #2dd4bf;
       font-size: 12.5px; padding: 10px; margin-top: 8px; font-weight: 700;
       display: flex; align-items: center; justify-content: center; gap: 6px;
       box-shadow: none;
     }
 
-    .btn-print { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); box-shadow: 0 6px 14px -3px rgba(6, 182, 212, 0.3); }
-    .btn-download { background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 6px 14px -3px rgba(16, 185, 129, 0.3); }
+    .btn-print { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); box-shadow: 0 6px 14px -3px rgba(2, 132, 199, 0.32); }
+    .btn-download { background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 6px 14px -3px rgba(16, 185, 129, 0.32); }
 
     .camera-mode-select {
       margin-top: 4px;
@@ -327,15 +372,15 @@
     .time-picker-grid { display: flex; gap: 10px; height: 160px; overflow: hidden; margin: 15px 0; border: 1px solid #e2e8f0; border-radius: 10px; background: #f8fafc; }
     .time-column { flex: 1; overflow-y: auto; scroll-snap-type: y mandatory; }
     .time-item { padding: 10px; font-size: 16px; font-weight: 600; cursor: pointer; scroll-snap-align: center; color: #334155; }
-    .time-item:hover, .time-item.selected { background: #0284c7; color: #fff; border-radius: 6px; }
+    .time-item:hover, .time-item.selected { background: #0f766e; color: #fff; border-radius: 6px; }
 
-    .box-kamera { border: 2px dashed var(--border-color); border-radius: 14px; padding: 16px; text-align: center; margin-top: 8px; background: #f8fafc; }
-    .video-container { position: relative; width: 100%; background: #000; border-radius: 10px; overflow: hidden; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; min-height: 220px; }
+    .box-kamera { border: 2px dashed #94a3b8; border-radius: 16px; padding: 16px; text-align: center; margin-top: 8px; background: #f8fafc; }
+    .video-container { position: relative; width: 100%; background: #000; border-radius: 12px; overflow: hidden; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; min-height: 220px; }
     video { width: 100%; height: auto; display: block; }
-    #previewFoto { width: 100%; max-height: 250px; border-radius: 10px; object-fit: contain; margin-bottom: 12px; background: #000; }
+    #previewFoto { width: 100%; max-height: 250px; border-radius: 12px; object-fit: contain; margin-bottom: 12px; background: #000; }
 
     .hidden { display: none !important; }
-    .info-box { background: #f0f9ff; border: 1px solid #bae6fd; padding: 14px; border-radius: 14px; font-size: 13px; margin-top: 12px; color: #000; line-height: 1.6; }
+    .info-box { background: #f0fdfa; border: 1px solid #99f6e4; padding: 14px; border-radius: 14px; font-size: 13px; margin-top: 12px; color: #000; line-height: 1.6; }
 
     .tabel-daftar-hadir {
       width: 100%;
@@ -398,8 +443,8 @@
       width: 44px;
       height: 44px;
       margin: 0 auto 14px auto;
-      border: 4px solid #e0f2fe;
-      border-top-color: #0284c7;
+      border: 4px solid #ccfbf1;
+      border-top-color: #0f766e;
       border-radius: 50%;
       animation: putarSpinner 0.8s linear infinite;
     }
@@ -431,7 +476,7 @@
     .modal-icon.error { background: #fee2e2; color: #b91c1c; }
     .modal-title { font-size: 16px; font-weight: 800; margin-bottom: 6px; color: #000; }
     .modal-message { font-size: 13px; color: #475569; margin-bottom: 18px; line-height: 1.45; }
-    .modal-btn { background: #0284c7; color: #fff; border: none; width: 100%; padding: 11px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+    .modal-btn { background: #0f766e; color: #fff; border: none; width: 100%; padding: 11px; border-radius: 10px; font-weight: 700; cursor: pointer; }
 
     @media print {
       body * { visibility: hidden; }
@@ -603,7 +648,7 @@
           </select>
         </div>
 
-        <div id="cardUndangan" class="hidden" style="margin-top: 14px; background: #fff; border: 2px solid #0284c7; padding: 18px; border-radius: 12px; color: #000;">
+        <div id="cardUndangan" class="hidden" style="margin-top: 14px; background: #fff; border: 2px solid #0f766e; padding: 18px; border-radius: 12px; color: #000;">
           <h3 style="text-align: center; color: #000; margin-bottom: 2px; text-transform: uppercase; border: none;">SURAT UNDANGAN RESMI</h3>
           <hr style="border: 0; border-top: 1px solid var(--border-color); margin-bottom: 12px;">
 
@@ -624,7 +669,7 @@
 
           <div style="margin-top: 8px; display: flex; justify-content: space-between; align-items: flex-start;">
             <div>
-              <div style="border: 2px solid #0284c7; width: 85px; height: 85px; display: flex; align-items: center; justify-content: center; background: #fff; border-radius: 4px;">
+              <div style="border: 2px solid #0f766e; width: 85px; height: 85px; display: flex; align-items: center; justify-content: center; background: #fff; border-radius: 4px;">
                 <img id="imgTtdBarcode" alt="Barcode" style="width: 75px; height: 75px; object-fit: contain;">
               </div>
               <div style="font-size: 11px; font-weight: bold; color: #000; margin-top: 4px;" id="undPengundangText">-</div>
@@ -719,7 +764,7 @@
           <button type="button" class="btn btn-print" onclick="bukaPreviewCetak()">🖨️ OPEN NOTULEN</button>
         </div>
 
-        <div id="cardLaporan" class="hidden" style="margin-top: 10px; background: #fff; border: 2px solid #0284c7; padding: 16px; border-radius: 10px; color: #000;">
+        <div id="cardLaporan" class="hidden" style="margin-top: 10px; background: #fff; border: 2px solid #0f766e; padding: 16px; border-radius: 10px; color: #000;">
           <h3 style="text-align: center; color: #000; margin-bottom: 4px; border: none;">LAPORAN RAPAT</h3>
           <hr style="border: 0; border-top: 1px solid var(--border-color); margin-bottom: 12px;">
           <table style="width: 100%; font-size: 12px; line-height: 1.5; color: #000;">
@@ -731,7 +776,7 @@
             <tr><td style="font-weight: bold; color: #000;">Jumlah Peserta</td><td id="repJml" style="color: #000; font-weight: bold;">: - Orang</td></tr>
           </table>
           <h4 style="margin-top: 12px; margin-bottom: 4px; font-size: 13px; color: #000;">Hasil Notulen:</h4>
-          <p id="repIsiNotulen" style="background: #f8fafc; padding: 8px; border-radius: 6px; font-size: 12px; border-left: 3px solid #0284c7; white-space: pre-wrap; color: #000;"></p>
+          <p id="repIsiNotulen" style="background: #f8fafc; padding: 8px; border-radius: 6px; font-size: 12px; border-left: 3px solid #0f766e; white-space: pre-wrap; color: #000;"></p>
           <h4 style="margin-top: 12px; margin-bottom: 6px; font-size: 13px; color: #000;">Daftar Peserta Hadir:</h4>
           <table border="1" style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: left; border-color: var(--border-color); color: #000;" id="tabelPesertaLaporan">
             <thead>
@@ -763,7 +808,7 @@
           <option value="">-- Pilih Judul / Code Meeting --</option>
         </select>
 
-        <div id="cardDaftarHadirCetak" class="hidden" style="margin-top: 16px; background: #fff; border: 2px solid #0284c7; padding: 16px; border-radius: 12px; color: #000;">
+        <div id="cardDaftarHadirCetak" class="hidden" style="margin-top: 16px; background: #fff; border: 2px solid #0f766e; padding: 16px; border-radius: 12px; color: #000;">
           <h3 style="text-align: center; color: #000; margin-bottom: 4px; border: none; text-transform: uppercase;">DAFTAR HADIR MEETING</h3>
           <div style="text-align: center; font-size: 12px; font-weight: 700; margin-bottom: 12px; color: #000;" id="dhJudulMeeting">-</div>
 
