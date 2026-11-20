@@ -298,7 +298,7 @@
     .box-kamera { border: 2px dashed var(--border-color); border-radius: 14px; padding: 16px; text-align: center; margin-top: 8px; background: #f8fafc; }
     .video-container { position: relative; width: 100%; background: #000; border-radius: 10px; overflow: hidden; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; min-height: 220px; }
     video { width: 100%; height: auto; display: block; }
-    #previewFoto { width: 100%; max-height: 240px; border-radius: 10px; object-fit: contain; margin-bottom: 12px; background: #000; }
+    #previewFoto { width: 100%; max-height: 250px; border-radius: 10px; object-fit: contain; margin-bottom: 12px; background: #000; }
 
     .hidden { display: none !important; }
     .info-box { background: #f0f9ff; border: 1px solid #bae6fd; padding: 14px; border-radius: 14px; font-size: 13px; margin-top: 12px; color: #000; line-height: 1.6; }
@@ -330,6 +330,58 @@
       border: 1px solid #cbd5e1;
       display: block;
       margin: 0 auto;
+    }
+
+    /* OVERLAY LOADING BLOKIR HALAMAN */
+    #loadingBlockerOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.72);
+      backdrop-filter: blur(6px);
+      z-index: 30000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    #loadingBlockerOverlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .loading-card {
+      background: #ffffff;
+      width: 86%;
+      max-width: 310px;
+      padding: 26px 22px;
+      border-radius: 20px;
+      text-align: center;
+      box-shadow: var(--shadow-md);
+      border: 1px solid #e2e8f0;
+    }
+    .loading-spinner {
+      width: 44px;
+      height: 44px;
+      margin: 0 auto 14px auto;
+      border: 4px solid #e0f2fe;
+      border-top-color: #0284c7;
+      border-radius: 50%;
+      animation: putarSpinner 0.8s linear infinite;
+    }
+    @keyframes putarSpinner {
+      to { transform: rotate(360deg); }
+    }
+    .loading-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+    .loading-sub {
+      font-size: 12.5px;
+      color: #475569;
+      line-height: 1.45;
     }
 
     #modalOverlay {
@@ -711,6 +763,15 @@
     </div>
   </div>
 
+  <!-- OVERLAY LOADING MENGHALANGI HALAMAN SAAT KIRIM ABSEN -->
+  <div id="loadingBlockerOverlay" role="alertdialog" aria-live="assertive" aria-busy="true">
+    <div class="loading-card">
+      <div class="loading-spinner"></div>
+      <div id="loadingBlockerTitle" class="loading-title">Mengirim &amp; Upload Foto...</div>
+      <div id="loadingBlockerSub" class="loading-sub">Mohon tunggu sebentar, data absensi dan foto sedang diproses.</div>
+    </div>
+  </div>
+
   <!-- MODAL TIME PICKER -->
   <div id="modalTimePicker" class="modal-time-overlay">
     <div class="modal-time-box">
@@ -744,6 +805,13 @@
     var gpsPesertaLat = '0';
     var gpsPesertaLng = '0';
     var alamatGpsPeserta = 'Mendeteksi alamat...';
+    var detailWilayahGps = {
+      kecamatan: '',
+      kota: '',
+      provinsi: '',
+      negara: 'Indonesia',
+      kodePos: ''
+    };
     var ttdBase64Global = '';
     var mediaStreamGlobal = null;
 
@@ -767,6 +835,16 @@
         console.error("Error POST:", err);
         if (callback) callback({ status: 'gagal', pesan: err.message });
       });
+    }
+
+    function tampilkanLoadingBlocker(judul, subteks) {
+      document.getElementById('loadingBlockerTitle').innerText = judul || 'Mengirim & Upload Foto...';
+      document.getElementById('loadingBlockerSub').innerText = subteks || 'Mohon tunggu sebentar, data absensi sedang dikirim ke server.';
+      document.getElementById('loadingBlockerOverlay').classList.add('active');
+    }
+
+    function sembunyikanLoadingBlocker() {
+      document.getElementById('loadingBlockerOverlay').classList.remove('active');
     }
 
     function muatTtdServer(callback) {
@@ -1163,7 +1241,9 @@
     document.getElementById('formAbsen').addEventListener('submit', function(e) {
       e.preventDefault();
       var btn = document.getElementById('btnKirim');
-      btn.disabled = true; btn.innerText = 'Mengirim & Upload Foto...';
+      btn.disabled = true;
+      btn.innerText = 'Mengirim & Upload Foto...';
+      tampilkanLoadingBlocker('Mengirim & Upload Foto...', 'Mohon tunggu, absensi dan foto sedang disimpan ke sistem.');
 
       var dataPayload = {
         acara: rapatTerpilih.code + ' - ' + rapatTerpilih.acara,
@@ -1172,13 +1252,17 @@
       };
 
       callServerPost('simpanAbsen', dataPayload, function(res) {
+        sembunyikanLoadingBlocker();
         btn.innerText = 'SEND ABSENSI';
         if (res.status === 'sukses') {
-          showModal('Berhasil', res.pesan, 'success');
-          document.getElementById('nama').value = ''; document.getElementById('jabatan').value = '';
+          document.getElementById('nama').value = '';
+          document.getElementById('jabatan').value = '';
           stopCamera();
           ulangFotoKamera();
-        } else { showModal('Gagal', res.pesan, 'error'); }
+          showModal('Selesai', res.pesan || 'Absensi berhasil dikirim dan disimpan.', 'success');
+        } else {
+          showModal('Gagal', res.pesan || 'Terjadi kendala saat mengirim absensi.', 'error');
+        }
         validasiTombolKirim();
       });
     });
@@ -1238,6 +1322,14 @@
           fetch(urlGeo)
             .then(res => res.json())
             .then(data => {
+              var addr = data.address || {};
+              detailWilayahGps = {
+                kecamatan: addr.suburb || addr.village || addr.city_district || addr.district || '',
+                kota: addr.city || addr.town || addr.county || addr.regency || '',
+                provinsi: addr.state || '',
+                negara: addr.country || 'Indonesia',
+                kodePos: addr.postcode || ''
+              };
               alamatGpsPeserta = data.display_name || ('Lat: ' + gpsPesertaLat + ', Long: ' + gpsPesertaLng);
               document.getElementById('lblGpsPeserta').innerText = alamatGpsPeserta + ' (Aktif)';
             })
@@ -1330,138 +1422,166 @@
       ctx.closePath();
     }
 
+    function gambarBenderaIndonesia(ctx, x, y, w, h) {
+      var setengah = h / 2;
+      ctx.save();
+      ctx.fillStyle = '#dc2626';
+      ctx.fillRect(x, y, w, setengah);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(x, y + setengah, w, setengah);
+      ctx.strokeStyle = 'rgba(15, 23, 42, 0.5)';
+      ctx.lineWidth = 0.8;
+      ctx.strokeRect(x, y, w, h);
+      ctx.restore();
+    }
+
+    function formatWaktuGpsMapCamera(sekarang) {
+      var hariIndo = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+      var dd = ('0' + sekarang.getDate()).slice(-2);
+      var mm = ('0' + (sekarang.getMonth() + 1)).slice(-2);
+      var yyyy = sekarang.getFullYear();
+      var hh = ('0' + sekarang.getHours()).slice(-2);
+      var min = ('0' + sekarang.getMinutes()).slice(-2);
+      var ss = ('0' + sekarang.getSeconds()).slice(-2);
+      var offsetMenit = -sekarang.getTimezoneOffset();
+      var tanda = offsetMenit >= 0 ? '+' : '-';
+      var jamOffset = ('0' + Math.floor(Math.abs(offsetMenit) / 60)).slice(-2);
+      return hariIndo[sekarang.getDay()] + ', ' + dd + '/' + mm + '/' + yyyy + ' ' + hh + ':' + min + ':' + ss + ' GMT ' + tanda + jamOffset + ':00';
+    }
+
     function terapkanStempelDanSimpan(canvas, ctx) {
       var sekarang = new Date();
-      var bulanNama = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
-      var tglStr = sekarang.getDate() + ' ' + bulanNama[sekarang.getMonth()] + ' ' + sekarang.getFullYear();
-      var jamStr = ('0' + sekarang.getHours()).slice(-2) + ':' + ('0' + sekarang.getMinutes()).slice(-2) + ':' + ('0' + sekarang.getSeconds()).slice(-2) + ' WIB';
-
       var namaPeserta = document.getElementById('nama').value.trim() || 'Peserta';
       var jabatanPeserta = document.getElementById('jabatan').value.trim() || '-';
       var kodeMeeting = rapatTerpilih ? (rapatTerpilih.code || 'MEETING') : 'MEETING';
 
-      var maxBoxLebar = Math.min(Math.round(canvas.width * 0.72), 420);
-      var paddingX = 14;
-      var paddingY = 12;
+      var kec = detailWilayahGps.kecamatan || 'Kec. Cipayung';
+      var kota = detailWilayahGps.kota || 'Kota Depok';
+      var negara = detailWilayahGps.negara || 'Indonesia';
+
+      var maxBoxLebar = Math.min(Math.round(canvas.width * 0.86), 540);
+      var paddingX = 12;
+      var paddingY = 10;
       var innerMaxLebar = maxBoxLebar - (paddingX * 2);
 
       var barisList = [];
 
-      barisList.push({
-        text: tglStr + ' • ' + jamStr,
-        font: '700 13px "Plus Jakarta Sans", sans-serif',
-        color: '#f8fafc',
-        lineHeight: 19,
-        badge: kodeMeeting
-      });
-
-      ctx.font = '700 13.5px "Plus Jakarta Sans", sans-serif';
-      pecahTeksPerBaris(ctx, namaPeserta + ' (' + jabatanPeserta + ')', innerMaxLebar).forEach(function(b) {
+      // Baris 1: Wilayah utama + bendera merah putih
+      ctx.font = '700 14.5px "Plus Jakarta Sans", sans-serif';
+      var judulWilayah = kec + ', ' + kota + ', ' + negara;
+      pecahTeksPerBaris(ctx, judulWilayah, innerMaxLebar - 26).forEach(function(b, idx) {
         barisList.push({
           text: b,
-          font: '700 13.5px "Plus Jakarta Sans", sans-serif',
-          color: '#38bdf8',
-          lineHeight: 19
+          font: '700 14.5px "Plus Jakarta Sans", sans-serif',
+          color: '#ffffff',
+          lineHeight: 20,
+          hasFlag: (idx === 0)
         });
       });
 
-      var alamatBersih = (alamatGpsPeserta && alamatGpsPeserta !== 'Mendeteksi alamat...')
+      // Baris 2: Peserta + kode meeting
+      ctx.font = '700 12px "Plus Jakarta Sans", sans-serif';
+      pecahTeksPerBaris(ctx, namaPeserta + ' • ' + jabatanPeserta + ' [' + kodeMeeting + ']', innerMaxLebar).forEach(function(b) {
+        barisList.push({
+          text: b,
+          font: '700 12px "Plus Jakarta Sans", sans-serif',
+          color: '#7dd3fc',
+          lineHeight: 17
+        });
+      });
+
+      // Baris 3: Alamat detail GPS
+      var alamatLengkap = (alamatGpsPeserta && alamatGpsPeserta !== 'Mendeteksi alamat...')
         ? alamatGpsPeserta
-        : ('Lat: ' + gpsPesertaLat + ', Long: ' + gpsPesertaLng);
-      ctx.font = '500 11.5px "Plus Jakarta Sans", sans-serif';
-      pecahTeksPerBaris(ctx, alamatBersih, innerMaxLebar).slice(0, 3).forEach(function(b) {
+        : (kec + ', ' + kota + ', ' + negara);
+      ctx.font = '500 11px "Plus Jakarta Sans", sans-serif';
+      pecahTeksPerBaris(ctx, alamatLengkap, innerMaxLebar).slice(0, 2).forEach(function(b) {
         barisList.push({
           text: b,
-          font: '500 11.5px "Plus Jakarta Sans", sans-serif',
+          font: '500 11px "Plus Jakarta Sans", sans-serif',
           color: '#e2e8f0',
-          lineHeight: 16
+          lineHeight: 15
         });
       });
 
+      // Baris 4: Koordinat Lat & Long
       barisList.push({
-        text: 'GPS: ' + gpsPesertaLat + ', ' + gpsPesertaLng,
-        font: '600 11.5px "Plus Jakarta Sans", sans-serif',
-        color: '#7dd3fc',
-        lineHeight: 18,
-        hasPin: true
+        text: 'Lat ' + gpsPesertaLat + '°  Long ' + gpsPesertaLng + '°',
+        font: '600 11px "Plus Jakarta Sans", sans-serif',
+        color: '#f8fafc',
+        lineHeight: 16
+      });
+
+      // Baris 5: Hari, tanggal, jam & GMT
+      barisList.push({
+        text: formatWaktuGpsMapCamera(sekarang),
+        font: '500 11px "Plus Jakarta Sans", sans-serif',
+        color: '#f8fafc',
+        lineHeight: 16
       });
 
       var terpanjangTeks = 0;
       barisList.forEach(function(item) {
         ctx.font = item.font;
-        var lebarItem = ctx.measureText(item.text).width + (item.hasPin ? 18 : 0);
-        if (item.badge) {
-          ctx.font = '700 10px "Plus Jakarta Sans", sans-serif';
-          lebarItem += ctx.measureText(item.badge).width + 20;
-        }
+        var lebarItem = ctx.measureText(item.text).width + (item.hasFlag ? 26 : 0);
         if (lebarItem > terpanjangTeks) terpanjangTeks = lebarItem;
       });
 
-      var boxWidth = Math.min(Math.max(Math.ceil(terpanjangTeks) + (paddingX * 2), 210), maxBoxLebar);
+      var boxWidth = Math.min(Math.max(Math.ceil(terpanjangTeks) + (paddingX * 2), 250), maxBoxLebar);
       var totalTinggiBaris = barisList.reduce(function(acc, it) { return acc + it.lineHeight; }, 0);
       var boxHeight = totalTinggiBaris + (paddingY * 2);
 
-      var marginLuar = 14;
+      var marginLuar = 12;
       var boxX = Math.max(marginLuar, canvas.width - boxWidth - marginLuar);
-      var boxY = Math.max(marginLuar, canvas.height - boxHeight - marginLuar);
+      var boxY = Math.max(marginLuar + 18, canvas.height - boxHeight - marginLuar);
+
+      // Tab badge kecil di kanan atas kotak ("GPS Map Camera")
+      var badgeText = 'GPS Map Camera';
+      ctx.font = '700 10px "Plus Jakarta Sans", sans-serif';
+      var badgeW = Math.min(ctx.measureText(badgeText).width + 24, boxWidth - 16);
+      var badgeH = 18;
+      var badgeX = boxX + boxWidth - badgeW;
+      var badgeY = boxY - badgeH + 1;
 
       ctx.save();
-      gambarKotakRounded(ctx, boxX, boxY, boxWidth, boxHeight, 12);
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.74)';
+      gambarKotakRounded(ctx, badgeX, badgeY, badgeW, badgeH, 6);
+      ctx.fillStyle = 'rgba(30, 32, 34, 0.82)';
       ctx.fill();
-      ctx.lineWidth = 1.2;
-      ctx.strokeStyle = 'rgba(125, 211, 252, 0.45)';
+
+      // Ikon pin mini pada badge
+      ctx.fillStyle = '#22c55e';
+      ctx.beginPath();
+      ctx.arc(badgeX + 9, badgeY + 8, 3.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#f1f5f9';
+      ctx.font = '700 9.8px "Plus Jakarta Sans", sans-serif';
+      ctx.fillText(badgeText, badgeX + 16, badgeY + 12.5);
+
+      // Kotak utama stempel
+      gambarKotakRounded(ctx, boxX, boxY, boxWidth, boxHeight, 8);
+      ctx.fillStyle = 'rgba(30, 32, 34, 0.78)';
+      ctx.fill();
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
       ctx.stroke();
 
       var currentY = boxY + paddingY;
       barisList.forEach(function(item) {
+        var baselineY = currentY + item.lineHeight - 4;
         ctx.font = item.font;
-        var midY = currentY + (item.lineHeight / 2) + 4;
+        ctx.fillStyle = item.color;
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.55)';
+        ctx.shadowBlur = 2;
+        ctx.fillText(item.text, boxX + paddingX, baselineY);
 
-        if (item.badge) {
-          ctx.font = '700 9.5px "Plus Jakarta Sans", sans-serif';
-          var badgeW = ctx.measureText(item.badge).width + 10;
-          var badgeH = 16;
-          var badgeX = boxX + boxWidth - paddingX - badgeW;
-          var badgeY = currentY + 1;
-
-          gambarKotakRounded(ctx, badgeX, badgeY, badgeW, badgeH, 5);
-          ctx.fillStyle = '#0284c7';
-          ctx.fill();
-
-          ctx.fillStyle = '#ffffff';
-          ctx.textAlign = 'center';
-          ctx.fillText(item.badge, badgeX + (badgeW / 2), badgeY + 11.5);
-          ctx.textAlign = 'left';
-
-          ctx.font = item.font;
-          ctx.fillStyle = item.color;
-          ctx.fillText(item.text, boxX + paddingX, midY);
-        } else if (item.hasPin) {
-          var pinX = boxX + paddingX + 6;
-          var pinY = midY - 3;
-          ctx.fillStyle = '#ef4444';
-          ctx.beginPath();
-          ctx.arc(pinX, pinY - 3, 4.2, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.lineWidth = 1;
-          ctx.strokeStyle = '#ffffff';
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.moveTo(pinX - 2.3, pinY);
-          ctx.lineTo(pinX, pinY + 4.5);
-          ctx.lineTo(pinX + 2.3, pinY);
-          ctx.fill();
-
-          ctx.font = item.font;
-          ctx.fillStyle = item.color;
-          ctx.fillText(item.text, boxX + paddingX + 18, midY);
-        } else {
-          ctx.font = item.font;
-          ctx.fillStyle = item.color;
-          ctx.fillText(item.text, boxX + paddingX, midY);
+        if (item.hasFlag) {
+          var teksW = ctx.measureText(item.text).width;
+          var flagX = Math.min(boxX + paddingX + teksW + 7, boxX + boxWidth - paddingX - 18);
+          gambarBenderaIndonesia(ctx, flagX, baselineY - 10, 18, 12);
         }
 
+        ctx.shadowColor = 'transparent';
         currentY += item.lineHeight;
       });
       ctx.restore();
