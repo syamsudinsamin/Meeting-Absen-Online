@@ -209,6 +209,7 @@
     .menu-card.card-4::before { background: #f59e0b; }
     .menu-card.card-5::before { background: #6366f1; }
     .menu-card.card-6::before { background: #ec4899; }
+    .menu-card.card-8::before { background: #8b5cf6; }
 
     .menu-card:hover {
       transform: translateY(-4px);
@@ -236,6 +237,7 @@
     .menu-card.card-4:hover { border-color: #fbbf24; }
     .menu-card.card-5:hover { border-color: #a5b4fc; }
     .menu-card.card-6:hover { border-color: #f472b6; }
+    .menu-card.card-8:hover { border-color: #a78bfa; }
 
     .card-1 .menu-icon-wrap { background: #ecfdf5; }
     .card-7 .menu-icon-wrap { background: #fff7ed; }
@@ -244,6 +246,7 @@
     .card-4 .menu-icon-wrap { background: #fffbeb; }
     .card-5 .menu-icon-wrap { background: #eef2ff; }
     .card-6 .menu-icon-wrap { background: #fdf2f8; }
+    .card-8 .menu-icon-wrap { background: #f5f3ff; }
 
     .menu-icon-img { width: 34px; height: 34px; object-fit: contain; }
     .menu-title { font-size: 13.5px; font-weight: 800; color: var(--text-main); margin-bottom: 4px; letter-spacing: -0.01em; }
@@ -595,6 +598,13 @@
           <div class="menu-title">REKAP MEETING</div>
           <div class="menu-subtitle">Ringkasan Jadwal &amp; Kehadiran</div>
         </div>
+        <div class="menu-card card-8" onclick="bukaFormRevisiUndangan()">
+          <div class="menu-icon-wrap">
+            <img src="https://cdn-icons-png.flaticon.com/512/1159/1159633.png" alt="Revisi Undangan" class="menu-icon-img">
+          </div>
+          <div class="menu-title">REVISI UNDANGAN</div>
+          <div class="menu-subtitle">Edit Waktu, Tanggal, Lokasi &amp; Data</div>
+        </div>
       </div>
     </div>
 
@@ -920,6 +930,59 @@
         <button type="button" class="btn btn-secondary" onclick="kembaliKeMenu()" style="margin-top: 14px;">⬅️ BACK TO MENU</button>
       </div>
     </div>
+
+    <!-- HALAMAN 7: REVISI DATA UNDANGAN / AGENDA -->
+    <div id="halamanRevisiUndangan" class="hidden">
+      <div class="content-card">
+        <h3>REVISI UNDANGAN &amp; AGENDA</h3>
+        <label>Pilih Agenda / Undangan yang Akan Direvisi</label>
+        <select id="pilihAgendaRevisi" onchange="muatFormRevisiAgenda()">
+          <option value="">-- Pilih Judul / Code Agenda --</option>
+        </select>
+
+        <form id="formRevisiUndangan" class="hidden" style="margin-top: 10px;">
+          <label>Code Agenda (Terkunci)</label>
+          <input type="text" id="revCode" readonly>
+
+          <label>Jenis Agenda</label>
+          <input type="text" id="revJenis" readonly>
+
+          <label>Ditujukan Kepada</label>
+          <input type="text" id="revDitujukan" required>
+
+          <label>Nama Pengundang</label>
+          <input type="text" id="revPengundang" required>
+
+          <label>Nama Acara / Kegiatan</label>
+          <input type="text" id="revAcara" required>
+
+          <label>Pembahasan / Materi</label>
+          <input type="text" id="revPembahasan" required>
+
+          <label>Nama Tempat / Lokasi</label>
+          <input type="text" id="revLokasiNama" required>
+
+          <label>Titik Koordinat GPS Lokasi</label>
+          <input type="text" id="revLokasiGps">
+
+          <label>Hari</label>
+          <input type="text" id="revHari" required>
+
+          <label>Tanggal (Contoh: 25 November 2026 atau pilih tanggal baru)</label>
+          <input type="text" id="revTanggal" required>
+          <input type="date" id="revTanggalPicker" onchange="terapkanTanggalPickerRevisi(this.value)" style="margin-top: 6px;">
+
+          <label>Waktu / Jam (Contoh: 19:30 WIB s.d Selesai)</label>
+          <input type="text" id="revWaktu" required>
+
+          <button type="submit" class="btn" id="btnSimpanRevisiUndangan" style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); margin-top: 16px;">
+            ✏️ SIMPAN REVISI UNDANGAN
+          </button>
+        </form>
+
+        <button type="button" class="btn btn-secondary" onclick="kembaliKeMenu()" style="margin-top: 14px;">⬅️ BACK TO MENU</button>
+      </div>
+    </div>
   </div>
 
   <!-- OVERLAY LOADING BLOKIR HALAMAN -->
@@ -1110,6 +1173,7 @@
       document.getElementById('halamanNotulen').classList.add('hidden');
       document.getElementById('halamanLaporanDaftarHadir').classList.add('hidden');
       document.getElementById('halamanRekapMeeting').classList.add('hidden');
+      document.getElementById('halamanRevisiUndangan').classList.add('hidden');
       document.getElementById('halamanLogin').classList.remove('hidden');
       stopCamera();
     }
@@ -1205,7 +1269,96 @@
       document.getElementById('halamanNotulen').classList.add('hidden');
       document.getElementById('halamanLaporanDaftarHadir').classList.add('hidden');
       document.getElementById('halamanRekapMeeting').classList.add('hidden');
+      document.getElementById('halamanRevisiUndangan').classList.add('hidden');
     }
+
+    function bukaFormRevisiUndangan() {
+      if (roleLogin !== 'admin') { showModal('Akses Ditolak', 'Maaf, Akun Anda tidak memiliki Hak Akses.', 'error'); return; }
+      document.getElementById('halamanMenuUtama').classList.add('hidden');
+      document.getElementById('halamanRevisiUndangan').classList.remove('hidden');
+      document.getElementById('formRevisiUndangan').classList.add('hidden');
+      var sel = document.getElementById('pilihAgendaRevisi');
+      sel.innerHTML = '<option value="">-- Memuat Agenda... --</option>';
+      muatSemuaAgenda(function(data) {
+        isiOpsiRapat(sel, data);
+      });
+    }
+
+    function muatFormRevisiAgenda() {
+      var idx = document.getElementById('pilihAgendaRevisi').value;
+      var form = document.getElementById('formRevisiUndangan');
+      if (idx === '') {
+        form.classList.add('hidden');
+        return;
+      }
+      var r = daftarRapatData[idx];
+      document.getElementById('revCode').value = r.code || '';
+      document.getElementById('revJenis').value = r.jenisAgenda || 'Rapat';
+      document.getElementById('revDitujukan').value = r.ditujukan || '';
+      document.getElementById('revPengundang').value = r.pengundang || '';
+      document.getElementById('revAcara').value = r.acara || '';
+      document.getElementById('revPembahasan').value = r.pembahasan || '';
+      document.getElementById('revLokasiNama').value = r.lokasiNama || '';
+      document.getElementById('revLokasiGps').value = r.lokasiGps || '';
+      document.getElementById('revHari').value = r.hari || '';
+      document.getElementById('revTanggal').value = formatTanggalBersih(r.tanggal);
+      document.getElementById('revTanggalPicker').value = '';
+      document.getElementById('revWaktu').value = r.waktu || '';
+      form.classList.remove('hidden');
+    }
+
+    function terapkanTanggalPickerRevisi(valTanggal) {
+      if (!valTanggal) return;
+      var hariArr = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+      var parts = valTanggal.split('-');
+      var d = new Date(parts[0], parts[1] - 1, parts[2]);
+      if (!isNaN(d.getTime())) {
+        document.getElementById('revHari').value = hariArr[d.getDay()];
+        document.getElementById('revTanggal').value = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+      }
+    }
+
+    document.getElementById('formRevisiUndangan').addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (roleLogin !== 'admin') { showModal('Akses Ditolak', 'Hanya Admin yang dapat merevisi undangan.', 'error'); return; }
+      var idx = document.getElementById('pilihAgendaRevisi').value;
+      if (idx === '') { showModal('Perhatian', 'Pilih agenda terlebih dahulu.', 'error'); return; }
+
+      var btn = document.getElementById('btnSimpanRevisiUndangan');
+      btn.disabled = true;
+      btn.innerText = 'Menyimpan Revisi...';
+
+      var updatedData = {
+        code: document.getElementById('revCode').value.trim(),
+        jenisAgenda: document.getElementById('revJenis').value.trim(),
+        ditujukan: document.getElementById('revDitujukan').value.trim(),
+        pengundang: document.getElementById('revPengundang').value.trim(),
+        acara: document.getElementById('revAcara').value.trim(),
+        pembahasan: document.getElementById('revPembahasan').value.trim(),
+        lokasiNama: document.getElementById('revLokasiNama').value.trim(),
+        lokasiGps: document.getElementById('revLokasiGps').value.trim(),
+        hari: document.getElementById('revHari').value.trim(),
+        tanggal: document.getElementById('revTanggal').value.trim(),
+        waktu: document.getElementById('revWaktu').value.trim()
+      };
+
+      callServerPost('updateAgendaUndangan', updatedData, function(res) {
+        btn.disabled = false;
+        btn.innerText = '✏️ SIMPAN REVISI UNDANGAN';
+
+        if (daftarRapatData[idx]) {
+          Object.assign(daftarRapatData[idx], updatedData);
+          isiOpsiRapat(document.getElementById('pilihAgendaRevisi'), daftarRapatData);
+          document.getElementById('pilihAgendaRevisi').value = idx;
+        }
+
+        if (res && res.status === 'sukses') {
+          showModal('Berhasil', res.pesan || 'Revisi undangan berhasil disimpan ke datasheet!', 'success');
+        } else {
+          showModal('Info Revisi', (res && res.pesan) ? res.pesan : 'Revisi diterapkan di sesi aplikasi ini. Pastikan action updateAgendaUndangan ditambahkan di Code.gs agar tersimpan permanen ke Spreadsheet.', 'success');
+        }
+      });
+    });
     function muatSemuaAgenda(callback) {
       var selesaiRapat = false;
       var selesaiKegiatan = false;
