@@ -1206,25 +1206,40 @@
       document.getElementById('halamanLaporanDaftarHadir').classList.add('hidden');
       document.getElementById('halamanRekapMeeting').classList.add('hidden');
     }
-
     function muatSemuaAgenda(callback) {
-      callServerGet('getDaftarRapat', '', function(dataRapat) {
-        var listRapat = (dataRapat || []).map(function(item) {
-          return Object.assign({ jenisAgenda: item.jenisAgenda || 'Rapat' }, item);
-        });
+      var selesaiRapat = false;
+      var selesaiKegiatan = false;
+      var listRapat = [];
+      var listKegiatan = [];
 
-        callServerGet('getDaftarKegiatan', '', function(dataKegiatan) {
-          var listKegiatan = (dataKegiatan || []).map(function(item) {
-            return Object.assign({ jenisAgenda: item.jenisAgenda || 'Sosialisasi / Kegiatan Kerja' }, item);
-          });
-
+      function cekSelesai() {
+        if (selesaiRapat && selesaiKegiatan) {
           var gabungan = listRapat.concat(listKegiatan);
           daftarRapatData = gabungan;
           if (callback) callback(gabungan);
-        });
-      });
-    }
+        }
+      }
 
+      fetch(SCRIPT_URL + '?action=getDaftarRapat')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          listRapat = Array.isArray(data) ? data.map(function(item) {
+            return Object.assign({ jenisAgenda: item.jenisAgenda || 'Rapat' }, item);
+          }) : [];
+        })
+        .catch(function() { listRapat = []; })
+        .finally(function() { selesaiRapat = true; cekSelesai(); });
+
+      fetch(SCRIPT_URL + '?action=getDaftarKegiatan')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          listKegiatan = Array.isArray(data) ? data.map(function(item) {
+            return Object.assign({ jenisAgenda: item.jenisAgenda || 'Sosialisasi / Kegiatan Kerja' }, item);
+          }) : [];
+        })
+        .catch(function() { listKegiatan = []; })
+        .finally(function() { selesaiKegiatan = true; cekSelesai(); });
+    }
     function isiOpsiRapat(selectEl, data) {
       selectEl.innerHTML = '<option value="">-- Pilih Judul / Code Agenda --</option>';
       if (!data || data.length === 0) {
