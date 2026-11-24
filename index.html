@@ -252,9 +252,46 @@
     .menu-title { font-size: 13.5px; font-weight: 800; color: var(--text-main); margin-bottom: 4px; letter-spacing: -0.01em; }
     .menu-subtitle { font-size: 11px; color: var(--text-muted); line-height: 1.35; }
 
+    .compact-form label {
+      margin-top: 8px;
+      font-size: 11.5px;
+    }
+    .compact-form input,
+    .compact-form select,
+    .compact-form textarea {
+      padding: 8px 11px;
+      margin-top: 3px;
+      font-size: 13px;
+      border-radius: 10px;
+    }
+    .compact-form .form-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      align-items: start;
+    }
+    .compact-form .btn-gps {
+      padding: 7px 10px;
+      margin-top: 5px;
+      font-size: 11.5px;
+    }
+    .compact-form .time-picker-container {
+      margin-top: 3px;
+      gap: 8px;
+    }
+    .compact-form .time-box {
+      padding: 8px 10px;
+      font-size: 13.5px;
+      border-radius: 10px;
+    }
+    .compact-form .btn[type="submit"] {
+      padding: 10px 14px;
+      margin-top: 10px;
+      font-size: 13px;
+    }
     .content-card {
       background: var(--card-bg);
-      padding: 26px 22px;
+      padding: 20px 18px;
       border-radius: 22px;
       box-shadow: var(--shadow-md);
       border: 1px solid #e2e8f0;
@@ -611,43 +648,63 @@
     <!-- HALAMAN 1: BUAT JADWAL RAPAT -->
     <div id="halamanAcaraRapat" class="hidden">
       <div class="content-card">
-        <h3>JADWAL MEETING</h3>
-        <form id="formAcara">
-          <label>Ditujukan Kepada</label>
-          <input type="text" id="acDitujukan" placeholder="Contoh: Seluruh Warga RT 01" required>
+        <h3 style="margin-bottom: 10px; padding-bottom: 8px;">JADWAL MEETING</h3>
+        <form id="formAcara" class="compact-form">
+          <div class="form-row-2">
+            <div>
+              <label>Ditujukan Kepada</label>
+              <input type="text" id="acDitujukan" placeholder="Contoh: Seluruh Warga RT 01" required>
+            </div>
+            <div>
+              <label>Nama Pengundang</label>
+              <input type="text" id="acPengundang" placeholder="Contoh: Syamsudin Samin" required>
+            </div>
+          </div>
 
-          <label>Nama Pengundang</label>
-          <input type="text" id="acPengundang" placeholder="Contoh: Syamsudin Samin" required>
+          <div class="form-row-2">
+            <div>
+              <label>Code Meeting</label>
+              <input type="text" id="acKode" value="[Otomatis dibuat saat disimpan]" readonly>
+            </div>
+            <div>
+              <label>Nama Acara Meeting</label>
+              <input type="text" id="acAcara" placeholder="Contoh: Rapat RW 04" required>
+            </div>
+          </div>
 
-          <label>Code Meeting</label>
-          <input type="text" id="acKode" value="[Otomatis dibuat saat disimpan]" readonly>
-
-          <label>Nama Acara Meeting</label>
-          <input type="text" id="acAcara" placeholder="Contoh: Rapat RW 04" required>
-
-          <label>Pembahasan</label>
-          <input type="text" id="acPembahasan" placeholder="Contoh: TPS / Keamanan" required>
-
-          <label>Nama Tempat / Lokasi</label>
-          <input type="text" id="acLokasiNama" placeholder="Contoh: Posyandu Mawar" required>
+          <div class="form-row-2">
+            <div>
+              <label>Pembahasan</label>
+              <input type="text" id="acPembahasan" placeholder="Contoh: TPS / Keamanan" required>
+            </div>
+            <div>
+              <label>Nama Tempat / Lokasi</label>
+              <input type="text" id="acLokasiNama" placeholder="Contoh: Posyandu Mawar" required>
+            </div>
+          </div>
 
           <label>Titik Koordinat GPS Lokasi</label>
           <input type="text" id="acLokasiGps" placeholder="Klik tombol di bawah" readonly required>
           <button type="button" class="btn btn-gps" onclick="ambilGpsAdmin()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
             KOORDINAT GPS LOKASI MEETING
           </button>
 
-          <label>Tanggal Meeting</label>
-          <input type="date" id="acTanggal" onchange="hitungHariOtomatis(this.value, 'acHari', 'acTanggal')" required>
-
-          <label>Hari</label>
-          <input type="text" id="acHari" placeholder="Otomatis" readonly required>
+          <div class="form-row-2">
+            <div>
+              <label>Tanggal Meeting</label>
+              <input type="date" id="acTanggal" onchange="hitungHariOtomatis(this.value, 'acHari', 'acTanggal')" required>
+            </div>
+            <div>
+              <label>Hari</label>
+              <input type="text" id="acHari" placeholder="Otomatis" readonly required>
+            </div>
+          </div>
 
           <label>Waktu Meeting</label>
           <div class="time-picker-container" onclick="bukaModalJam('ac')">
             <div id="displayJam" class="time-box">19 : 30</div>
-            <div class="time-box" style="background: #e2e8f0; flex: 0.6; cursor: default;">WIB s.d Selesai</div>
+            <div class="time-box" style="background: #e2e8f0; flex: 0.7; cursor: default;">WIB s.d Selesai</div>
           </div>
           <input type="hidden" id="acWaktu" value="19:30 WIB s.d Selesai" required>
 
@@ -660,51 +717,71 @@
     <!-- HALAMAN MENU BARU: KEGIATAN & SOSIALISASI -->
     <div id="halamanKegiatanSosialisasi" class="hidden">
       <div class="content-card">
-        <h3>KEGIATAN &amp; SOSIALISASI</h3>
-        <form id="formKegiatanSosialisasi">
-          <label>Jenis Kegiatan</label>
-          <select id="ksJenis" required>
-            <option value="Sosialisasi">Sosialisasi</option>
-            <option value="Kegiatan Kerja">Kegiatan Kerja / Kerja Bakti</option>
-            <option value="Penyuluhan">Penyuluhan / Edukasi</option>
-            <option value="Kegiatan Warga">Kegiatan Warga / Lainnya</option>
-          </select>
+        <h3 style="margin-bottom: 10px; padding-bottom: 8px;">KEGIATAN &amp; SOSIALISASI</h3>
+        <form id="formKegiatanSosialisasi" class="compact-form">
+          <div class="form-row-2">
+            <div>
+              <label>Jenis Kegiatan</label>
+              <select id="ksJenis" required>
+                <option value="Sosialisasi">Sosialisasi</option>
+                <option value="Kegiatan Kerja">Kegiatan Kerja / Kerja Bakti</option>
+                <option value="Penyuluhan">Penyuluhan / Edukasi</option>
+                <option value="Kegiatan Warga">Kegiatan Warga / Lainnya</option>
+              </select>
+            </div>
+            <div>
+              <label>Code Kegiatan</label>
+              <input type="text" id="ksKode" value="[Otomatis dibuat saat disimpan]" readonly>
+            </div>
+          </div>
 
-          <label>Ditujukan Kepada</label>
-          <input type="text" id="ksDitujukan" placeholder="Contoh: Warga RT 07 RW 04 & Pengurus Pokmas" required>
+          <div class="form-row-2">
+            <div>
+              <label>Ditujukan Kepada</label>
+              <input type="text" id="ksDitujukan" placeholder="Contoh: Warga RT 07 RW 04" required>
+            </div>
+            <div>
+              <label>Pengundang / PJ</label>
+              <input type="text" id="ksPengundang" placeholder="Contoh: Syamsudin Samin" required>
+            </div>
+          </div>
 
-          <label>Nama Pengundang / Penanggung Jawab</label>
-          <input type="text" id="ksPengundang" placeholder="Contoh: Syamsudin Samin" required>
-
-          <label>Code Kegiatan</label>
-          <input type="text" id="ksKode" value="[Otomatis dibuat saat disimpan]" readonly>
-
-          <label>Nama Kegiatan / Sosialisasi</label>
-          <input type="text" id="ksAcara" placeholder="Contoh: Sosialisasi Pemilahan Sampah & Kerja Bakti" required>
+          <div class="form-row-2">
+            <div>
+              <label>Nama Kegiatan / Sosialisasi</label>
+              <input type="text" id="ksAcara" placeholder="Contoh: Sosialisasi Sampah" required>
+            </div>
+            <div>
+              <label>Nama Tempat / Lokasi</label>
+              <input type="text" id="ksLokasiNama" placeholder="Contoh: TPS Dipo Mawar 04" required>
+            </div>
+          </div>
 
           <label>Materi / Uraian Kegiatan</label>
           <input type="text" id="ksPembahasan" placeholder="Contoh: Pemilahan organik/anorganik & pembersihan saluran" required>
 
-          <label>Nama Tempat / Lokasi</label>
-          <input type="text" id="ksLokasiNama" placeholder="Contoh: TPS Dipo Mawar 04 / Balai Warga" required>
-
           <label>Titik Koordinat GPS Lokasi</label>
           <input type="text" id="ksLokasiGps" placeholder="Klik tombol di bawah" readonly required>
           <button type="button" class="btn btn-gps" onclick="ambilGpsKegiatan()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
             KOORDINAT GPS LOKASI KEGIATAN
           </button>
 
-          <label>Tanggal Kegiatan</label>
-          <input type="date" id="ksTanggal" onchange="hitungHariOtomatis(this.value, 'ksHari', 'ksTanggal')" required>
-
-          <label>Hari</label>
-          <input type="text" id="ksHari" placeholder="Otomatis" readonly required>
+          <div class="form-row-2">
+            <div>
+              <label>Tanggal Kegiatan</label>
+              <input type="date" id="ksTanggal" onchange="hitungHariOtomatis(this.value, 'ksHari', 'ksTanggal')" required>
+            </div>
+            <div>
+              <label>Hari</label>
+              <input type="text" id="ksHari" placeholder="Otomatis" readonly required>
+            </div>
+          </div>
 
           <label>Waktu Kegiatan</label>
           <div class="time-picker-container" onclick="bukaModalJam('ks')">
             <div id="ksDisplayJam" class="time-box">08 : 00</div>
-            <div class="time-box" style="background: #e2e8f0; flex: 0.6; cursor: default;">WIB s.d Selesai</div>
+            <div class="time-box" style="background: #e2e8f0; flex: 0.7; cursor: default;">WIB s.d Selesai</div>
           </div>
           <input type="hidden" id="ksWaktu" value="08:00 WIB s.d Selesai" required>
 
@@ -787,37 +864,44 @@
         </div>
 
         <div id="panelIsiAbsen" class="hidden">
-          <div class="info-box">
+          <div class="info-box" style="padding: 10px 12px; margin-top: 0; font-size: 12px; line-height: 1.45;">
             <b>Code Agenda:</b> <span id="lblKodeAktif" style="color: #000; font-weight: bold;"></span><br>
             <b>Status GPS:</b> <span id="lblGpsPeserta" style="color: #000; font-weight: 600;">Mendeteksi...</span>
           </div>
-          <form id="formAbsen">
-            <label>Nama Lengkap</label>
-            <input type="text" id="nama" placeholder="Masukkan nama Anda" required>
-            <label>Jabatan</label>
-            <input type="text" id="jabatan" placeholder="Contoh: Ketua / Anggota / Warga" required>
+          <form id="formAbsen" class="compact-form">
+            <div class="form-row-2">
+              <div>
+                <label>Nama Lengkap</label>
+                <input type="text" id="nama" placeholder="Nama Anda" required>
+              </div>
+              <div>
+                <label>Jabatan</label>
+                <input type="text" id="jabatan" placeholder="Ketua / Anggota / Warga" required>
+              </div>
+            </div>
+
             <label>Foto Kehadiran (Stempel GPS Map Camera)</label>
-            <div class="box-kamera">
-              <label for="pilihanKamera" style="margin-top: 0; font-size: 12px; text-align: left;">Pilih Kamera HP / Perangkat</label>
-              <select id="pilihanKamera" class="camera-mode-select" onchange="gantiModeKamera()">
-                <option value="environment">📷 Kamera Belakang (Default)</option>
+            <div class="box-kamera" style="padding: 11px; margin-top: 4px; border-radius: 12px;">
+              <label for="pilihanKamera" style="margin-top: 0; font-size: 11px; text-align: left;">Kamera Perangkat</label>
+              <select id="pilihanKamera" class="camera-mode-select" onchange="gantiModeKamera()" style="margin-bottom: 6px; padding: 7px 10px; font-size: 12px;">
+                <option value="environment">📷 Kamera Belakang</option>
                 <option value="user">🤳 Kamera Depan</option>
               </select>
 
-              <div id="videoContainer" class="video-container hidden">
+              <div id="videoContainer" class="video-container hidden" style="min-height: 175px; margin-bottom: 8px;">
                 <video id="videoElement" autoplay playsinline muted></video>
               </div>
               <canvas id="hiddenCanvas" class="hidden"></canvas>
-              <img id="previewFoto" class="hidden" alt="Preview Foto">
+              <img id="previewFoto" class="hidden" alt="Preview Foto" style="max-height: 195px; margin-bottom: 8px;">
 
-              <button type="button" class="btn" id="btnNyalakanKamera" onclick="startCamera()">📸 1. NYALAKAN KAMERA</button>
+              <button type="button" class="btn" id="btnNyalakanKamera" onclick="startCamera()" style="margin-top: 4px; padding: 9px 12px; font-size: 12.5px;">📸 1. NYALAKAN KAMERA</button>
 
-              <div id="aksiKameraAktif" class="camera-active-actions hidden">
-                <button type="button" class="btn btn-download" id="btnAmbilFoto" onclick="captureSnapshot()">📷 2. AMBIL FOTO</button>
-                <button type="button" class="btn btn-switch-cam" id="btnTukarKamera" onclick="tukarKamera()">🔄 Tukar Kamera</button>
+              <div id="aksiKameraAktif" class="camera-active-actions hidden" style="margin-top: 6px;">
+                <button type="button" class="btn btn-download" id="btnAmbilFoto" onclick="captureSnapshot()" style="padding: 9px 10px; font-size: 12px;">📷 2. AMBIL FOTO</button>
+                <button type="button" class="btn btn-switch-cam" id="btnTukarKamera" onclick="tukarKamera()" style="padding: 9px 8px; font-size: 11.5px;">🔄 Tukar</button>
               </div>
 
-              <button type="button" class="btn btn-secondary hidden" id="btnUlangFoto" onclick="ulangFotoKamera()" style="margin-top: 8px;">🔄 Ambil Ulang Foto</button>
+              <button type="button" class="btn btn-secondary hidden" id="btnUlangFoto" onclick="ulangFotoKamera()" style="margin-top: 6px; padding: 8px 10px; font-size: 12px;">🔄 Ambil Ulang Foto</button>
             </div>
             <button type="submit" class="btn" id="btnKirim" disabled>SEND ABSENSI</button>
           </form>
@@ -940,42 +1024,73 @@
           <option value="">-- Pilih Judul / Code Agenda --</option>
         </select>
 
-        <form id="formRevisiUndangan" class="hidden" style="margin-top: 10px;">
-          <label>Code Agenda (Terkunci)</label>
-          <input type="text" id="revCode" readonly>
+        <form id="formRevisiUndangan" class="hidden compact-form" style="margin-top: 8px;">
+          <div class="form-row-2">
+            <div>
+              <label>Code Agenda</label>
+              <input type="text" id="revCode" readonly>
+            </div>
+            <div>
+              <label>Jenis Agenda</label>
+              <input type="text" id="revJenis" readonly>
+            </div>
+          </div>
 
-          <label>Jenis Agenda</label>
-          <input type="text" id="revJenis" readonly>
+          <div class="form-row-2">
+            <div>
+              <label>Ditujukan Kepada</label>
+              <input type="text" id="revDitujukan" required>
+            </div>
+            <div>
+              <label>Nama Pengundang</label>
+              <input type="text" id="revPengundang" required>
+            </div>
+          </div>
 
-          <label>Ditujukan Kepada</label>
-          <input type="text" id="revDitujukan" required>
+          <div class="form-row-2">
+            <div>
+              <label>Nama Acara / Kegiatan</label>
+              <input type="text" id="revAcara" required>
+            </div>
+            <div>
+              <label>Nama Tempat / Lokasi</label>
+              <input type="text" id="revLokasiNama" required>
+            </div>
+          </div>
 
-          <label>Nama Pengundang</label>
-          <input type="text" id="revPengundang" required>
+          <div class="form-row-2">
+            <div>
+              <label>Pembahasan / Materi</label>
+              <input type="text" id="revPembahasan" required>
+            </div>
+            <div>
+              <label>Koordinat GPS</label>
+              <input type="text" id="revLokasiGps" placeholder="Opsional">
+            </div>
+          </div>
 
-          <label>Nama Acara / Kegiatan</label>
-          <input type="text" id="revAcara" required>
+          <div class="form-row-2">
+            <div>
+              <label>Hari</label>
+              <input type="text" id="revHari" required>
+            </div>
+            <div>
+              <label>Waktu / Jam</label>
+              <input type="text" id="revWaktu" required>
+            </div>
+          </div>
 
-          <label>Pembahasan / Materi</label>
-          <input type="text" id="revPembahasan" required>
+          <label>Tanggal (Teks &amp; Kalender)</label>
+          <div class="form-row-2">
+            <div>
+              <input type="text" id="revTanggal" placeholder="Contoh: 25 November 2026" required>
+            </div>
+            <div>
+              <input type="date" id="revTanggalPicker" onchange="terapkanTanggalPickerRevisi(this.value)">
+            </div>
+          </div>
 
-          <label>Nama Tempat / Lokasi</label>
-          <input type="text" id="revLokasiNama" required>
-
-          <label>Titik Koordinat GPS Lokasi</label>
-          <input type="text" id="revLokasiGps">
-
-          <label>Hari</label>
-          <input type="text" id="revHari" required>
-
-          <label>Tanggal (Contoh: 25 November 2026 atau pilih tanggal baru)</label>
-          <input type="text" id="revTanggal" required>
-          <input type="date" id="revTanggalPicker" onchange="terapkanTanggalPickerRevisi(this.value)" style="margin-top: 6px;">
-
-          <label>Waktu / Jam (Contoh: 19:30 WIB s.d Selesai)</label>
-          <input type="text" id="revWaktu" required>
-
-          <button type="submit" class="btn" id="btnSimpanRevisiUndangan" style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); margin-top: 16px;">
+          <button type="submit" class="btn" id="btnSimpanRevisiUndangan" style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); margin-top: 10px;">
             ✏️ SIMPAN REVISI UNDANGAN
           </button>
         </form>
