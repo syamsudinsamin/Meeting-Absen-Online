@@ -891,7 +891,7 @@
           <div style="margin-top: 8px; display: flex; justify-content: space-between; align-items: flex-start;">
             <div>
               <div style="border: 2px solid #0f766e; width: 85px; height: 85px; display: flex; align-items: center; justify-content: center; background: #fff; border-radius: 4px;">
-                <img id="imgTtdBarcode" alt="Barcode" style="width: 75px; height: 75px; object-fit: contain;">
+                <img id="imgTtdBarcode" alt="Barcode" style="width: 78px; height: 78px; object-fit: contain; image-rendering: crisp-edges;">
               </div>
               <div style="font-size: 11px; font-weight: bold; color: #000; margin-top: 4px;" id="undPengundangText">-</div>
             </div>
@@ -1281,27 +1281,45 @@
 
       var reader = new FileReader();
       reader.onload = function(evt) {
+        var rawDataUrl = String(evt.target.result || '');
+        if (!rawDataUrl) return;
+
+        // Jika ukuran file wajar (<= 350 KB), simpan data URL asli apa adanya agar piksel QR/barcode tidak berubah
+        if (rawDataUrl.length <= 460000) {
+          if (hiddenEl) hiddenEl.value = rawDataUrl;
+          if (previewEl) {
+            previewEl.src = rawDataUrl;
+            previewEl.classList.remove('hidden');
+          }
+          if (statusEl) statusEl.innerText = 'Terpasang asli: ' + file.name;
+          if (clearBtn) clearBtn.classList.remove('hidden');
+          return;
+        }
+
+        // Jika ukuran sangat besar, perkecil dengan imageSmoothingEnabled = false agar garis/kotak QR tetap tegas
         var img = new Image();
         img.onload = function() {
           var canvas = document.createElement('canvas');
-          var maxSide = 320;
-          var w = img.width;
-          var h = img.height;
+          var maxSide = 600;
+          var w = img.width || 300;
+          var h = img.height || 300;
           if (w > maxSide || h > maxSide) {
             if (w >= h) {
-              h = Math.round((h * maxSide) / w);
+              h = Math.max(1, Math.round((h * maxSide) / w));
               w = maxSide;
             } else {
-              w = Math.round((w * maxSide) / h);
+              w = Math.max(1, Math.round((w * maxSide) / h));
               h = maxSide;
             }
           }
-          canvas.width = Math.max(1, w);
-          canvas.height = Math.max(1, h);
+          canvas.width = w;
+          canvas.height = h;
           var ctx = canvas.getContext('2d');
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.imageSmoothingEnabled = false;
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          var dataUrl = canvas.toDataURL('image/png', 0.92);
+          var dataUrl = canvas.toDataURL('image/png');
           if (hiddenEl) hiddenEl.value = dataUrl;
           if (previewEl) {
             previewEl.src = dataUrl;
@@ -1310,7 +1328,7 @@
           if (statusEl) statusEl.innerText = 'Terpasang: ' + file.name;
           if (clearBtn) clearBtn.classList.remove('hidden');
         };
-        img.src = evt.target.result;
+        img.src = rawDataUrl;
       };
       reader.readAsDataURL(file);
     }
@@ -1829,7 +1847,12 @@
         imgBarcode.src = srcFix || buatQrFallbackUndangan();
       }
       var barcodeAgenda = r.barcodeTtd || r.barcode || r.ttd || '';
+      imgBarcode.style.imageRendering = 'pixelated';
       if (barcodeAgenda) {
+        // Jika barcode diupload user, tampilkan persis gambar tersebut tanpa diganti QR generator otomatis
+        imgBarcode.onerror = function() {
+          this.onerror = null;
+        };
         terapkanGambarBarcode(barcodeAgenda);
       } else if (ttdBase64Global) {
         terapkanGambarBarcode(ttdBase64Global);
