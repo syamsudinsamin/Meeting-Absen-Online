@@ -1265,6 +1265,37 @@
     }
 
 
+
+    function simpanBarcodeLokal(kodeAgenda, namaPengundang, dataUrl) {
+      if (!dataUrl) return;
+      try {
+        var mapByCode = JSON.parse(localStorage.getItem('barcodeAgendaMap_v1') || '{}');
+        var mapBySigner = JSON.parse(localStorage.getItem('barcodePengundangMap_v1') || '{}');
+        if (kodeAgenda) {
+          mapByCode[String(kodeAgenda).trim()] = dataUrl;
+          localStorage.setItem('barcodeAgendaMap_v1', JSON.stringify(mapByCode));
+        }
+        if (namaPengundang) {
+          mapBySigner[String(namaPengundang).trim().toLowerCase()] = dataUrl;
+          localStorage.setItem('barcodePengundangMap_v1', JSON.stringify(mapBySigner));
+        }
+      } catch (e) {}
+    }
+
+    function ambilBarcodeLokal(kodeAgenda, namaPengundang) {
+      try {
+        var mapByCode = JSON.parse(localStorage.getItem('barcodeAgendaMap_v1') || '{}');
+        if (kodeAgenda && mapByCode[String(kodeAgenda).trim()]) {
+          return mapByCode[String(kodeAgenda).trim()];
+        }
+        var mapBySigner = JSON.parse(localStorage.getItem('barcodePengundangMap_v1') || '{}');
+        if (namaPengundang && mapBySigner[String(namaPengundang).trim().toLowerCase()]) {
+          return mapBySigner[String(namaPengundang).trim().toLowerCase()];
+        }
+      } catch (e) {}
+      return '';
+    }
+
     function prosesUploadBarcode(prefix, inputEl) {
       var file = inputEl && inputEl.files && inputEl.files[0];
       var hiddenEl = document.getElementById(prefix + 'BarcodeBase64');
@@ -1642,6 +1673,9 @@
         btn.disabled = false;
         btn.innerText = '✏️ SIMPAN REVISI UNDANGAN';
 
+        if (updatedData.barcodeTtd) {
+          simpanBarcodeLokal(updatedData.code, updatedData.pengundang, updatedData.barcodeTtd);
+        }
         if (daftarRapatData[idx]) {
           Object.assign(daftarRapatData[idx], updatedData);
           isiOpsiRapat(document.getElementById('pilihAgendaRevisi'), daftarRapatData);
@@ -1846,7 +1880,7 @@
         var srcFix = normalisasiSrcBarcode(rawVal);
         imgBarcode.src = srcFix || buatQrFallbackUndangan();
       }
-      var barcodeAgenda = r.barcodeTtd || r.barcode || r.ttd || '';
+      var barcodeAgenda = r.barcodeTtd || r.barcode || r.ttd || ambilBarcodeLokal(r.code, r.pengundang) || '';
       imgBarcode.style.imageRendering = 'pixelated';
       if (barcodeAgenda) {
         // Jika barcode diupload user, tampilkan persis gambar tersebut tanpa diganti QR generator otomatis
@@ -1949,9 +1983,11 @@
         if (res.status === 'sukses') {
           showModal('Berhasil', res.pesan, 'success');
           document.getElementById('acKode').value = res.kode + ' (Tersimpan!)';
+          if (dataAcara.barcodeTtd) simpanBarcodeLokal(res.kode, dataAcara.pengundang, dataAcara.barcodeTtd);
           daftarRapatData.push(Object.assign({ code: res.kode, jumlahPeserta: 0, hasilNotulen: '' }, dataAcara));
         } else {
           var kodeRapatLokal = 'RPT-' + String(Math.floor(100 + Math.random() * 900));
+          if (dataAcara.barcodeTtd) simpanBarcodeLokal(kodeRapatLokal, dataAcara.pengundang, dataAcara.barcodeTtd);
           daftarRapatData.push(Object.assign({ code: kodeRapatLokal, jumlahPeserta: 0, hasilNotulen: '' }, dataAcara));
           showModal('Info', res.pesan || 'Data meeting tersimpan di sesi ini.', 'success');
         }
@@ -1989,12 +2025,15 @@
       callServerPost('simpanKegiatanSosialisasi', dataKegiatan, function(res) {
         btn.disabled = false; btn.innerText = '💾 SAVE KEGIATAN / SOSIALISASI';
         if (res.status === 'sukses') {
+          var kodeSuksesKgt = res.kode || 'KGT-001';
           showModal('Berhasil', res.pesan || 'Kegiatan / Sosialisasi berhasil disimpan.', 'success');
-          document.getElementById('ksKode').value = (res.kode || 'KGT-001') + ' (Tersimpan!)';
-          daftarRapatData.push(Object.assign({ code: res.kode || ('KGT-' + String(Math.floor(100 + Math.random() * 900))), jumlahPeserta: 0, hasilNotulen: '' }, dataKegiatan));
+          document.getElementById('ksKode').value = kodeSuksesKgt + ' (Tersimpan!)';
+          if (dataKegiatan.barcodeTtd) simpanBarcodeLokal(kodeSuksesKgt, dataKegiatan.pengundang, dataKegiatan.barcodeTtd);
+          daftarRapatData.push(Object.assign({ code: kodeSuksesKgt, jumlahPeserta: 0, hasilNotulen: '' }, dataKegiatan));
         } else {
           // Fallback lokal bila Apps Script belum menangani action simpanKegiatanSosialisasi
           var kodeLokal = 'KGT-' + String(Math.floor(100 + Math.random() * 900));
+          if (dataKegiatan.barcodeTtd) simpanBarcodeLokal(kodeLokal, dataKegiatan.pengundang, dataKegiatan.barcodeTtd);
           daftarRapatData.push(Object.assign({
             code: kodeLokal,
             jumlahPeserta: 0,
